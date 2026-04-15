@@ -4,9 +4,9 @@
 Create a custom dashboard of YouTube videos that uses a personal algorithm for suggesting videos (subset of YouTube content, not all videos).
 
 ## Product Intent
-The dashboard should adapt the feed to the user's daily rhythm instead of acting like an endless generic recommendation engine.
+The purpose of this custom youTube feed is to natually change the feed according to ones lifestlye and encourage a healthy viewing behaiour. The dashboard should adapt the feed to the user's daily rhythm instead of a youtube's original algorithm which is an endless dopamine trap.
 
-Core idea:
+Example routine:
 - Morning: motivating videos, morning routines, energy-setting content
 - Lunch: trusted news, explainers, educational videos, how-to content
 - Afternoon: work-related content, tech updates, business ideas, professional growth
@@ -121,25 +121,25 @@ What's the smallest version we can build to validate the idea?
 This is not just a "latest uploads" dashboard.
 
 The long-term goal is to rank videos based on:
-- time of day
-- desired mindset for that time block
-- trusted channels for that mode
+- the active feed rule for the current time/day
+- desired mindset for that rule window
 - user lifestyle goals
 - healthy viewing behavior over raw engagement
 
-### Example Daily Modes
+### Dynamic Feed Windows
 
-| Time Block | Desired Outcome | Example Content |
-| --- | --- | --- |
-| Morning | Start the day with intention and energy | routines, motivation, planning, exercise, positive vlogs |
-| Lunch | Learn something useful in a short window | news, explainers, tutorials, how-to videos |
-| Afternoon | Support work and building goals | tech updates, business, design, coding, skill-building |
-| Night | Wind down and avoid doom scrolling | calm vlogs, music, reflective content, lower-stimulation videos |
+Time slots should be user-defined rather than hardcoded.
+
+Examples of possible rule windows:
+- weekdays from 6:00 AM to 9:00 AM for motivating or routine content
+- weekdays from 12:00 PM to 1:00 PM for news, explainers, or how-to videos
+- weekdays from 1:00 PM to 6:00 PM for work, tech, or business content
+- evenings from 8:00 PM onward for calmer content, music, or lighter vlogs
 
 ### What This Implies for the Product
-- the same channel may be useful in one time block and less useful in another
+- the same channel may be useful in one rule window and less useful in another
 - recency alone is not enough; videos need a contextual score
-- channel trust matters because news/education slots should prefer higher-quality sources
+- recommendation logic should come from configurable rules, not fixed app logic
 - some content may be intentionally down-ranked at certain times of day
 - eventually the system should help the user consume less but better
 
@@ -157,8 +157,6 @@ CREATE TABLE channels (
     name TEXT NOT NULL,                   -- Channel name
     url TEXT NOT NULL,                    -- YouTube channel URL
     thumbnail_url TEXT,                   -- Channel avatar
-  default_time_slot TEXT,               -- Optional initial classification: morning, lunch, afternoon, night
-  trust_level INTEGER DEFAULT 3,        -- 1-5 subjective trust/quality score for the channel
     upload_frequency TEXT DEFAULT 'biweekly',  -- Expected upload frequency (biweekly, weekly, daily, etc.)
     last_updated DATETIME,                -- Last time we fetched this channel's feed (NULL = never fetched)
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -177,21 +175,35 @@ CREATE TABLE videos (
     url TEXT NOT NULL,                    -- Full YouTube URL
     thumbnail_url TEXT,
     publish_date DATETIME NOT NULL,       -- When video was published
-  content_bucket TEXT,                  -- morning, lunch, afternoon, night (manual/tagged/inferred)
-  energy_level INTEGER,                 -- 1-5 rough stimulation level
-  content_type TEXT,                    -- motivation, news, tutorial, vlog, music, etc.
+    category_tags TEXT,                   -- Comma-separated or JSON-style tags used by feed rules
     duration_seconds INTEGER,             -- Video length in seconds (future: from API)
     view_count INTEGER,                   -- Future: from API
-    like_count INTEGER,                   -- Future: from API
-    comment_count INTEGER,                -- Future: from API
     is_watched BOOLEAN DEFAULT FALSE,     -- User interaction
-    user_rating INTEGER,                  -- User rating (1-5 stars, NULL = not rated)
-    bookmarked BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(channel_id) REFERENCES channels(id)
 );
 ```
+
+  #### `feed_rules` table
+  ```sql
+  CREATE TABLE feed_rules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,                   -- Optional label like "weekday lunch learning"
+    monday BOOLEAN DEFAULT FALSE,
+    tuesday BOOLEAN DEFAULT FALSE,
+    wednesday BOOLEAN DEFAULT FALSE,
+    thursday BOOLEAN DEFAULT FALSE,
+    friday BOOLEAN DEFAULT FALSE,
+    saturday BOOLEAN DEFAULT FALSE,
+    sunday BOOLEAN DEFAULT FALSE,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    category_tag TEXT NOT NULL,           -- Tag to match against videos.category_tags
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  ```
 
 ### Diagram
 
@@ -204,8 +216,6 @@ CREATE TABLE videos (
 │ name                                │
 │ url                                 │
 │ thumbnail_url                       │
-│ default_time_slot                   │
-│ trust_level                         │
 │ upload_frequency                    │
 │ last_updated ← ⭐ TRACKS REFRESH    │
 │ created_at                          │
@@ -225,16 +235,29 @@ CREATE TABLE videos (
 │ url                                 │
 │ thumbnail_url                       │
 │ publish_date ← ⭐ SORT BY THIS      │
-│ content_bucket                      │
-│ energy_level                        │
-│ content_type                        │
+│ category_tags                       │
 │ duration_seconds                    │
 │ view_count (future)                 │
-│ like_count (future)                 │
-│ comment_count (future)              │
 │ is_watched                          │
-│ user_rating                         │
-│ bookmarked                          │
+│ created_at                          │
+│ updated_at                          │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│         feed_rules                  │
+├─────────────────────────────────────┤
+│ id (PK)                             │
+│ name                                │
+│ monday                              │
+│ tuesday                             │
+│ wednesday                           │
+│ thursday                            │
+│ friday                              │
+│ saturday                            │
+│ sunday                              │
+│ start_time                          │
+│ end_time                            │
+│ category_tag                        │
 │ created_at                          │
 │ updated_at                          │
 └─────────────────────────────────────┘
@@ -246,20 +269,19 @@ CREATE TABLE videos (
 
 ### Phase 1: Simple but Useful
 Start with a lightweight rule-based system:
-- determine the current time block
+- determine the currently active feed rule based on day + time
 - show newest videos first
-- prefer channels or videos tagged for that time block
+- prefer videos whose `category_tags` match the active rule's `category_tag`
 - optionally de-prioritize mismatched content
 
 Example:
 $$
-score = recency + slot\_match + trust\_weight - mismatch\_penalty
+score = recency + rule\_match - mismatch\_penalty
 $$
 
 Where:
 - `recency` rewards recent uploads
-- `slot_match` boosts content matching the current part of day
-- `trust_weight` boosts channels you consider reliable or high-quality
+- `rule_match` boosts content matching the currently active feed rule
 - `mismatch_penalty` reduces content that feels wrong for the moment
 
 ### Phase 2: Add Better Classification
@@ -275,7 +297,7 @@ Later, classify each channel or video into buckets such as:
 - music
 - calm
 
-This can start manually at the channel level before moving to video-level inference.
+This can start with manual tags stored in `videos.category_tags`, then later move to better inference.
 
 ### Phase 3: Healthier Viewing Controls
 Later the product can actively shape behavior:
