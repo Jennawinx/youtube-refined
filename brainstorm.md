@@ -175,7 +175,7 @@ CREATE TABLE videos (
     url TEXT NOT NULL,                    -- Full YouTube URL
     thumbnail_url TEXT,
     publish_date DATETIME NOT NULL,       -- When video was published
-    category_tags TEXT,                   -- Comma-separated or JSON-style tags used by feed rules
+    category_tags TEXT,                   -- JSON array of tags, e.g. ["motivation", "morning-routine"]
     duration_seconds INTEGER,             -- Video length in seconds (future: from API)
     view_count INTEGER,                   -- Future: from API
     is_watched BOOLEAN DEFAULT FALSE,     -- User interaction
@@ -204,6 +204,64 @@ CREATE TABLE videos (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
   ```
+
+### JSON Array Decision for `category_tags`
+
+Yes, SQLite supports JSON arrays through its JSON functions.
+
+Important detail:
+- SQLite does not have a native `JSON` column type
+- JSON is typically stored as `TEXT`
+- modern SQLite versions include built-in JSON functions by default
+- this means `category_tags` can safely be stored as JSON text such as:
+
+```json
+["motivation", "morning-routine", "wellness"]
+```
+
+Example queries:
+
+```sql
+SELECT *
+FROM videos
+WHERE EXISTS (
+    SELECT 1
+    FROM json_each(videos.category_tags)
+    WHERE json_each.value = 'motivation'
+);
+```
+
+```sql
+SELECT json_array_length(category_tags)
+FROM videos;
+```
+
+### Performance Implications
+
+For this project, JSON arrays in SQLite are a good fit for MVP scale.
+
+Pros:
+- flexible and easy to evolve without schema churn
+- natural representation for multiple tags per video
+- easy to work with in Django/Python
+- good enough for small to moderate datasets
+
+Tradeoffs:
+- SQLite still stores JSON as text unless you explicitly use newer JSONB functions internally
+- membership checks require parsing JSON during queries
+- indexing inside JSON arrays is limited compared to a normalized join table
+- filtering by tag across a very large video table will be slower than a dedicated `video_tags` table
+
+Practical guidance:
+- for hundreds or low thousands of videos: totally reasonable
+- for tens of thousands of videos with lots of tag-based filtering: expect slower queries
+- if tag filtering becomes central and the dataset grows, normalize later into `tags` + `video_tags`
+
+Recommendation:
+- use JSON arrays now for simplicity
+- keep `feed_rules.category_tag` as a single string
+- match rules against `videos.category_tags` using `json_each(...)`
+- revisit normalization only if real query performance becomes a problem
 
 ### Diagram
 
