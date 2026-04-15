@@ -91,9 +91,39 @@ What's the smallest version we can build to validate the idea?
 
 ✅ **Single-user project** - for personal use only
 ✅ **MVP scope: Subscribed channels only** - start with videos from channels you're already subscribed to
-✅ **Tech stack: Django + Templating + Tailwind CSS** - keep it simple and lean
+✅ **Tech stack: Django + Django templates + Tailwind CSS** - keep it simple and lean
+✅ **Desktop-ready direction:** Build as a web app first, then package as a desktop app shell
 ✅ **YouTube API: Defer for now** - explore alternatives or manual approaches first
 ✅ **Approach: Brainstorm architecture first** - design the system before coding
+
+### Stack Direction (Web First -> Desktop)
+
+Build plan:
+1. Build core product as a standard Django app (SQLite + templates + Tailwind)
+2. Keep frontend fully local-friendly (no cloud dependency required for MVP)
+3. Package the running Django app into a desktop shell later
+
+Desktop packaging options:
+- Option A: Tauri wrapper around a local web UI
+  - Pros: lightweight, modern, lower memory usage
+  - Cons: extra Rust toolchain setup
+- Option B: Electron wrapper around local Django server
+  - Pros: mature ecosystem, lots of examples
+  - Cons: heavier app footprint
+- Option C: Native Python webview wrapper (pywebview)
+  - Pros: simplest Python-centric setup
+  - Cons: fewer production-grade patterns than Tauri/Electron
+
+Recommended path:
+- Start with pure Django project now
+- When feature-complete enough, wrap with Tauri or Electron
+- Keep app architecture transportable: business logic in Django services, UI in templates
+
+Desktop-readiness constraints to keep in mind early:
+- avoid hard dependency on remote hosting for core flows
+- use SQLite file paths that are portable across OS installations
+- avoid assumptions that app runs only in a browser tab
+- isolate refresh jobs so they can run from app actions (manual button first)
 
 ---
 
@@ -155,8 +185,6 @@ CREATE TABLE channels (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     channel_id TEXT UNIQUE NOT NULL,      -- YouTube channel ID (e.g., "UC_x5XG1OV2P6uZZ5FSM9Ttw")
     name TEXT NOT NULL,                   -- Channel name
-    url TEXT NOT NULL,                    -- YouTube channel URL
-    thumbnail_url TEXT,                   -- Channel avatar
     upload_frequency TEXT DEFAULT 'biweekly',  -- Expected upload frequency (biweekly, weekly, daily, etc.)
     last_updated DATETIME,                -- Last time we fetched this channel's feed (NULL = never fetched)
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -177,7 +205,6 @@ CREATE TABLE videos (
     publish_date DATETIME NOT NULL,       -- When video was published
     category_tags TEXT,                   -- JSON array of tags, e.g. ["motivation", "morning-routine"]
     duration_seconds INTEGER,             -- Video length in seconds (future: from API)
-    view_count INTEGER,                   -- Future: from API
     is_watched BOOLEAN DEFAULT FALSE,     -- User interaction
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -272,8 +299,6 @@ Recommendation:
 │ id (PK)                             │
 │ channel_id (UNIQUE)                 │
 │ name                                │
-│ url                                 │
-│ thumbnail_url                       │
 │ upload_frequency                    │
 │ last_updated ← ⭐ TRACKS REFRESH    │
 │ created_at                          │
@@ -295,7 +320,6 @@ Recommendation:
 │ publish_date ← ⭐ SORT BY THIS      │
 │ category_tags                       │
 │ duration_seconds                    │
-│ view_count (future)                 │
 │ is_watched                          │
 │ created_at                          │
 │ updated_at                          │
