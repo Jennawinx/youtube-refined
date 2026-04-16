@@ -2,14 +2,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-import json
 from urllib.request import urlopen
-from xml.etree import ElementTree
 
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
 
 from feed.models import Channel, Video
+from feed.services.rss_parsing import (
+    RssRefreshError,
+    get_alternate_link,
+    get_as_dict,
+    get_attribute_value,
+    get_required_value,
+    get_text_value,
+    parse_feed as parse_feed_entries,
+    parse_published_datetime,
+)
 
 RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 SHORTS_MARKER = "#shorts"
@@ -38,17 +45,13 @@ class RefreshStats:
     skipped_missing_duration: int = 0
 
 
-class RssRefreshError(Exception):
-    pass
-
-
 def refresh_all_channels(*, strict_duration: bool = False) -> list[RefreshStats]:
     return [refresh_channel(channel, strict_duration=strict_duration) for channel in Channel.objects.all()]
 
 
 def refresh_channel(channel: Channel, *, strict_duration: bool = False) -> RefreshStats:
     xml_bytes = fetch_channel_feed(channel.channel_id)
-    parsed_videos = parse_feed(xml_bytes)
+    parsed_videos = parse_feed_to_videos(xml_bytes)
     stats = RefreshStats(channel_name=channel.name, fetched=len(parsed_videos))
 
     for parsed_video in parsed_videos:
@@ -94,15 +97,12 @@ def fetch_channel_feed(channel_id: str) -> bytes:
         raise RssRefreshError(f"Unable to fetch RSS feed for channel {channel_id}") from exc
 
 
-def parse_feed(xml_bytes: bytes) -> list[ParsedVideo]:
-    try:
-        root = ElementTree.fromstring(xml_bytes)
-    except ElementTree.ParseError as exc:
-        raise RssRefreshError("Unable to parse RSS feed") from exc
+def parse_feed_to_videos(xml_bytes: bytes) -> list[ParsedVideo]:
+    return [parse_entry(entry) for entry in parse_feed_entries(xml_bytes)]
 
-    feed_data = parse_xml_to_json(root)
-    entries = get_as_list(feed_data.get("entry"))
-    return [parse_entry(entry) for entry in entries]
+
+def parse_feed(xml_bytes: bytes) -> list[ParsedVideo]:
+    return parse_feed_to_videos(xml_bytes)
 
 
 def parse_entry(entry: dict) -> ParsedVideo:
@@ -137,104 +137,3 @@ def get_skip_reason(parsed_video: ParsedVideo, *, strict_duration: bool = False)
     if strict_duration and parsed_video.duration_seconds is None:
         return "missing_duration"
     return None
-
-
-def get_required_value(data: dict, key: str) -> str:
-    value = get_text_value(data.get(key))
-    if not value:
-        raise RssRefreshError(f"Missing required field: {key}")
-    return value
-
-
-def get_text_value(value) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, str):
-        return value.strip()
-    if isinstance(value, dict):
-        text_value = value.get("#text", "")
-        if isinstance(text_value, str):
-            return text_value.strip()
-    return ""
-
-
-def get_alternate_link(entry: dict) -> str:
-    for link in get_as_list(entry.get("link")):
-        if isinstance(link, dict) and link.get("@rel") == "alternate":
-            return link.get("@href", "")
-    raise RssRefreshError("Missing alternate link")
-
-
-def get_attribute_value(value, attribute_name: str) -> str:
-    if isinstance(value, list):
-        value = value[0] if value else None
-    if isinstance(value, dict):
-        attribute_value = value.get(f"@{attribute_name}", "")
-        if isinstance(attribute_value, str):
-            return attribute_value.strip()
-    return ""
-
-
-def get_as_dict(value) -> dict:
-    if isinstance(value, dict):
-        return value
-    if isinstance(value, list):
-        return value[0] if value and isinstance(value[0], dict) else {}
-    return {}
-
-
-def get_as_list(value) -> list:
-    if value is None:
-        return []
-    if isinstance(value, list):
-        return value
-    return [value]
-
-
-def parse_xml_to_json(element: ElementTree.Element) -> dict:
-    json_ready = {strip_namespace(element.tag): element_to_data(element)}
-    return json.loads(json.dumps(json_ready))[strip_namespace(element.tag)]
-
-
-def element_to_data(element: ElementTree.Element):
-    children = list(element)
-    attributes = {f"@{strip_namespace(key)}": value for key, value in element.attrib.items()}
-
-    if not children:
-        text = (element.text or "").strip()
-        if attributes and text:
-            return {**attributes, "#text": text}
-        if attributes:
-            return attributes
-        return text
-
-    data = dict(attributes)
-    for child in children:
-        key = strip_namespace(child.tag)
-        child_value = element_to_data(child)
-        if key in data:
-            if not isinstance(data[key], list):
-                data[key] = [data[key]]
-            data[key].append(child_value)
-        else:
-            data[key] = child_value
-
-    text = (element.text or "").strip()
-    if text:
-        data["#text"] = text
-    return data
-
-
-def strip_namespace(value: str) -> str:
-    if value.startswith("{"):
-        return value.split("}", 1)[1]
-    if ":" in value:
-        return value.split(":", 1)[1]
-    return value
-
-
-def parse_published_datetime(value: str) -> datetime:
-    parsed = parse_datetime(value)
-    if parsed is None:
-        raise RssRefreshError(f"Invalid published datetime: {value}")
-    return parsed
