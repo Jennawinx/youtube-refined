@@ -1,30 +1,169 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>YouTube Refined</title>
-  </head>
-  <body>
-    <main>
-      <h1>YouTube Refined</h1>
-      <p>Project initialized successfully.</p>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f3f4f4",
+                        "on-secondary-fixed-variant": "#5c5e6e",
+                        "outline-variant": "#afb2b3",
+                        "on-tertiary-fixed-variant": "#6f553b",
+                        "on-primary": "#e5fff2",
+                        "secondary-container": "#e6e6fa",
+                        "on-primary-container": "#005a44",
+                        "on-surface-variant": "#5c6060",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#525464",
+                        "secondary-fixed-dim": "#d8d8ec",
+                        "on-error": "#fff7f6",
+                        "secondary": "#5c5e6e",
+                        "on-tertiary-fixed": "#503921",
+                        "surface-bright": "#f9f9f9",
+                        "surface-variant": "#e0e3e4",
+                        "primary-fixed-dim": "#7be2bd",
+                        "primary": "#006c53",
+                        "on-secondary-fixed": "#404251",
+                        "tertiary-fixed": "#fed9b8",
+                        "on-surface": "#2f3334",
+                        "inverse-surface": "#0c0f0f",
+                        "surface-tint": "#006c53",
+                        "secondary-fixed": "#e6e6fa",
+                        "on-error-container": "#65000b",
+                        "on-primary-fixed-variant": "#00644c",
+                        "error-container": "#f56965",
+                        "on-background": "#2f3334",
+                        "inverse-on-surface": "#9c9d9d",
+                        "tertiary-dim": "#684e35",
+                        "tertiary-fixed-dim": "#efcbab",
+                        "surface": "#f9f9f9",
+                        "secondary-dim": "#505262",
+                        "surface-container-highest": "#e0e3e4",
+                        "surface-container": "#edeeee",
+                        "on-tertiary-container": "#644b32",
+                        "on-tertiary": "#fff7f4",
+                        "outline": "#777b7c",
+                        "background": "#f9f9f9",
+                        "on-secondary": "#faf8ff",
+                        "error-dim": "#70030f",
+                        "surface-container-high": "#e6e8e9",
+                        "tertiary": "#755a40",
+                        "inverse-primary": "#98ffd9",
+                        "primary-container": "#89f0cb",
+                        "surface-dim": "#d7dbdb",
+                        "on-primary-fixed": "#004533",
+                        "primary-fixed": "#89f0cb",
+                        "error": "#ac3434",
+                        "primary-dim": "#005f48",
+                        "tertiary-container": "#fed9b8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e0e3e4;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+    <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-8">
+        <!-- Header -->
+        <header class="flex flex-col gap-6">
+            <h1 class="text-4xl font-extrabold tracking-tight">YouTube Refined</h1>
+            <div class="flex items-center gap-4">
+                <form method="post" class="flex gap-2">
+                    {% csrf_token %}
+                    <button type="submit" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm">
+                        Refresh Feed
+                    </button>
+                </form>
+                {% if refetch_success %}
+                    <div class="px-4 py-2.5 bg-primary-container/30 text-on-surface rounded-lg text-sm font-medium">
+                        ✓ {{ refetch_success }}
+                    </div>
+                {% endif %}
+                {% if refetch_error %}
+                    <div class="px-4 py-2.5 bg-error-container/30 text-on-surface rounded-lg text-sm font-medium">
+                        ✗ {{ refetch_error }}
+                    </div>
+                {% endif %}
+            </div>
+        </header>
 
-      <section>
-        <h2>RSS Test Actions</h2>
-        <form method="post" action="{% url 'home' %}">
-          {% csrf_token %}
-          <button type="submit">Test Refetch Channel (UCSzHO_V894KyTDw3UgZS7gg)</button>
-        </form>
-
-        {% if refetch_success %}
-          <p>{{ refetch_success }}</p>
+        <!-- Video Grid -->
+        {% if videos %}
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pb-10">
+            {% for video in videos %}
+            <article class="flex flex-col gap-3 group cursor-pointer">
+                <div class="relative rounded-2xl overflow-hidden aspect-video bg-surface-container-high">
+                    {% if video.thumbnail_url %}
+                        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ video.thumbnail_url }}" alt="{{ video.title }}" />
+                    {% else %}
+                        <div class="w-full h-full bg-gradient-to-br from-primary-fixed-dim to-primary-dim flex items-center justify-center">
+                            <span class="material-symbols-outlined text-4xl text-on-primary/30">video_library</span>
+                        </div>
+                    {% endif %}
+                    {% if video.duration_seconds %}
+                        <div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wider">
+                            {{ video.duration_seconds }} sec
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex flex-col gap-2">
+                    <a href="{{ video.url }}" target="_blank" rel="noopener noreferrer" class="text-sm font-bold leading-snug line-clamp-2 hover:text-primary transition-colors">
+                        {{ video.title }}
+                    </a>
+                    <p class="text-[11px] font-medium text-on-surface-variant/70 uppercase tracking-tighter">
+                        {{ video.channel.name }}
+                    </p>
+                    <p class="text-[10px] text-on-surface-variant/50">
+                        {{ video.publish_date|date:"M d, Y" }}
+                    </p>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+        {% else %}
+        <section class="flex flex-col items-center justify-center gap-4 py-20 text-center">
+            <span class="material-symbols-outlined text-6xl text-on-surface-variant/30">video_library</span>
+            <h2 class="text-xl font-bold text-on-surface-variant">No videos yet</h2>
+            <p class="text-sm text-on-surface-variant/70">Click "Refresh Feed" to fetch videos from your channels.</p>
+        </section>
         {% endif %}
-
-        {% if refetch_error %}
-          <p>{{ refetch_error }}</p>
-        {% endif %}
-      </section>
     </main>
-  </body>
+</body>
 </html>

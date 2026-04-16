@@ -1,13 +1,16 @@
 from django.shortcuts import render
 
-from feed.models import Channel
+from feed.models import Channel, Video
 from feed.services.rss import RssRefreshError, refresh_channel
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 
 
 def home(request):
-    context = {}
+    videos = Video.objects.select_related("channel").order_by("-publish_date")[:20]
+    context = {
+        "videos": videos,
+    }
 
     if request.method == "POST":
         channel = Channel.objects.filter(channel_id=TEST_CHANNEL_ID).first()
