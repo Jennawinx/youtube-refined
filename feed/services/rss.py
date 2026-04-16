@@ -50,6 +50,8 @@ def refresh_all_channels(*, strict_duration: bool = False) -> list[RefreshStats]
 def refresh_channel(channel: Channel, *, strict_duration: bool = False) -> RefreshStats:
     xml_bytes = fetch_channel_feed(channel.channel_id)
     parsed_videos = parse_feed_to_videos(xml_bytes)
+    print(f"Fetched {len(parsed_videos)} videos for channel {channel.name}")
+    print(parsed_videos)
     stats = RefreshStats(channel_name=channel.name, fetched=len(parsed_videos))
 
     for parsed_video in parsed_videos:

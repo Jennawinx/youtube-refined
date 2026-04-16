@@ -9,6 +9,22 @@
     <main>
       <h1>YouTube Refined</h1>
       <p>Project initialized successfully.</p>
+
+      <section>
+        <h2>RSS Test Actions</h2>
+        <form method="post" action="{% url 'test_refetch_channel' %}">
+          {% csrf_token %}
+          <button type="submit">Test Refetch Channel (UCSzHO_V894KyTDw3UgZS7gg)</button>
+        </form>
+
+        {% if refetch_success %}
+          <p>{{ refetch_success }}</p>
+        {% endif %}
+
+        {% if refetch_error %}
+          <p>{{ refetch_error }}</p>
+        {% endif %}
+      </section>
     </main>
   </body>
 </html>
