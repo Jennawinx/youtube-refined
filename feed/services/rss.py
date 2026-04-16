@@ -40,9 +40,7 @@ class RefreshStats:
     fetched: int = 0
     created: int = 0
     existing: int = 0
-    skipped_shorts: int = 0
-    skipped_short_duration: int = 0
-    skipped_missing_duration: int = 0
+    skipped: int = 0
 
 
 def refresh_all_channels(*, strict_duration: bool = False) -> list[RefreshStats]:
@@ -55,15 +53,8 @@ def refresh_channel(channel: Channel, *, strict_duration: bool = False) -> Refre
     stats = RefreshStats(channel_name=channel.name, fetched=len(parsed_videos))
 
     for parsed_video in parsed_videos:
-        skip_reason = get_skip_reason(parsed_video, strict_duration=strict_duration)
-        if skip_reason == "shorts":
-            stats.skipped_shorts += 1
-            continue
-        if skip_reason == "short_duration":
-            stats.skipped_short_duration += 1
-            continue
-        if skip_reason == "missing_duration":
-            stats.skipped_missing_duration += 1
+        if should_skip_video(parsed_video, strict_duration=strict_duration):
+            stats.skipped += 1
             continue
 
         _, created = Video.objects.get_or_create(
@@ -129,11 +120,11 @@ def parse_entry(entry: dict) -> ParsedVideo:
     )
 
 
-def get_skip_reason(parsed_video: ParsedVideo, *, strict_duration: bool = False) -> str | None:
+def should_skip_video(parsed_video: ParsedVideo, *, strict_duration: bool = False) -> bool:
     if SHORTS_MARKER in parsed_video.description.lower():
-        return "shorts"
+        return True
     if parsed_video.duration_seconds is not None and parsed_video.duration_seconds < MIN_DURATION_SECONDS:
-        return "short_duration"
+        return True
     if strict_duration and parsed_video.duration_seconds is None:
-        return "missing_duration"
-    return None
+        return True
+    return False

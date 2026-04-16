@@ -19,27 +19,19 @@ class Command(BaseCommand):
 
         total_created = 0
         total_existing = 0
-        total_skipped_shorts = 0
-        total_skipped_short_duration = 0
-        total_skipped_missing_duration = 0
+        total_skipped = 0
 
         for stats in stats_list:
             total_created += stats.created
             total_existing += stats.existing
-            total_skipped_shorts += stats.skipped_shorts
-            total_skipped_short_duration += stats.skipped_short_duration
-            total_skipped_missing_duration += stats.skipped_missing_duration
+            total_skipped += stats.skipped
             self.stdout.write(
                 f"{stats.channel_name}: fetched={stats.fetched} created={stats.created} "
-                f"existing={stats.existing} skipped_shorts={stats.skipped_shorts} "
-                f"skipped_short_duration={stats.skipped_short_duration} "
-                f"skipped_missing_duration={stats.skipped_missing_duration}"
+                f"existing={stats.existing} skipped={stats.skipped}"
             )
 
         self.stdout.write(self.style.SUCCESS("RSS refresh complete."))
         self.stdout.write(
             f"Totals: created={total_created} existing={total_existing} "
-            f"skipped_shorts={total_skipped_shorts} "
-            f"skipped_short_duration={total_skipped_short_duration} "
-            f"skipped_missing_duration={total_skipped_missing_duration}"
+            f"skipped={total_skipped}"
         )
