@@ -166,6 +166,8 @@ WHERE EXISTS (
 - Manual refresh button only (no background scheduler for MVP)
 - Per-channel `last_updated` tracks fetch history
 - Duplicate videos skipped via `video_id` uniqueness check
+- Filter out videos where description contains `#shorts` (case-insensitive)
+- Filter out videos with `duration_seconds < 120`
 
 ### Default Feed Sorting
 - `publish_date DESC` as base ordering
@@ -207,6 +209,9 @@ For each channel in DB:
     Parse XML → extract video items
     ↓
     For each video:
+        if description contains "#shorts" (case-insensitive) → SKIP
+        if duration_seconds < 120 → SKIP
+        if duration is missing/unavailable → SKIP
         if video_id not in DB → INSERT
         else → SKIP
     ↓

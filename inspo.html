@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>VideoStream | Minimalist Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f3f4f4",
+                        "on-secondary-fixed-variant": "#5c5e6e",
+                        "outline-variant": "#afb2b3",
+                        "on-tertiary-fixed-variant": "#6f553b",
+                        "on-primary": "#e5fff2",
+                        "secondary-container": "#e6e6fa",
+                        "on-primary-container": "#005a44",
+                        "on-surface-variant": "#5c6060",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#525464",
+                        "secondary-fixed-dim": "#d8d8ec",
+                        "on-error": "#fff7f6",
+                        "secondary": "#5c5e6e",
+                        "on-tertiary-fixed": "#503921",
+                        "surface-bright": "#f9f9f9",
+                        "surface-variant": "#e0e3e4",
+                        "primary-fixed-dim": "#7be2bd",
+                        "primary": "#006c53",
+                        "on-secondary-fixed": "#404251",
+                        "tertiary-fixed": "#fed9b8",
+                        "on-surface": "#2f3334",
+                        "inverse-surface": "#0c0f0f",
+                        "surface-tint": "#006c53",
+                        "secondary-fixed": "#e6e6fa",
+                        "on-error-container": "#65000b",
+                        "on-primary-fixed-variant": "#00644c",
+                        "error-container": "#f56965",
+                        "on-background": "#2f3334",
+                        "inverse-on-surface": "#9c9d9d",
+                        "tertiary-dim": "#684e35",
+                        "tertiary-fixed-dim": "#efcbab",
+                        "surface": "#f9f9f9",
+                        "secondary-dim": "#505262",
+                        "surface-container-highest": "#e0e3e4",
+                        "surface-container": "#edeeee",
+                        "on-tertiary-container": "#644b32",
+                        "on-tertiary": "#fff7f4",
+                        "outline": "#777b7c",
+                        "background": "#f9f9f9",
+                        "on-secondary": "#faf8ff",
+                        "error-dim": "#70030f",
+                        "surface-container-high": "#e6e8e9",
+                        "tertiary": "#755a40",
+                        "inverse-primary": "#98ffd9",
+                        "primary-container": "#89f0cb",
+                        "surface-dim": "#d7dbdb",
+                        "on-primary-fixed": "#004533",
+                        "primary-fixed": "#89f0cb",
+                        "error": "#ac3434",
+                        "primary-dim": "#005f48",
+                        "tertiary-container": "#fed9b8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e0e3e4;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-surface text-on-surface flex h-screen overflow-hidden">
+    <!-- LEFT PANEL: CONTENT BROWSER -->
+    <main class="w-[60%] h-full bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-8">
+        <!-- Search Section -->
+        <header class="w-full">
+            <div class="relative group">
+                <span
+                    class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                <input
+                    class="w-full bg-surface-container-high border-none rounded-xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all placeholder-on-surface-variant/50"
+                    placeholder="Search for aesthetic moments..." type="text" />
+            </div>
+        </header>
+        <!-- Category Tabs Section -->
+        <section class="flex flex-col gap-4">
+            <div class="flex flex-wrap gap-3 items-center">
+                <!-- Recommended: Square, Transparent/Soft -->
+                <button
+                    class="w-24 h-24 bg-primary text-on-primary rounded-xl flex flex-col items-center justify-center gap-2 transition-transform duration-200 active:scale-95 shadow-sm">
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Recommended</span>
+                </button>
+                <!-- Channel: Square, Pastel background -->
+                <button
+                    class="w-24 h-24 bg-secondary-container text-on-secondary-container rounded-xl flex flex-col items-center justify-center gap-2 transition-transform duration-200 active:scale-95 shadow-sm">
+                    <span class="material-symbols-outlined">grid_view</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Channel</span>
+                </button>
+                <!-- Pill Tabs -->
+                <div class="flex flex-wrap gap-2 flex-1">
+                    <button
+                        class="px-5 py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-full text-xs font-semibold transition-colors">Music</button>
+                    <button
+                        class="px-5 py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-full text-xs font-semibold transition-colors">Podcast</button>
+                    <button
+                        class="px-5 py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-full text-xs font-semibold transition-colors">Pets</button>
+                    <button
+                        class="px-5 py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-full text-xs font-semibold transition-colors">Cafe</button>
+                    <button
+                        class="px-5 py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-full text-xs font-semibold transition-colors">ASMR</button>
+                    <button
+                        class="px-5 py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-full text-xs font-semibold transition-colors">Cooking</button>
+                    <button
+                        class="px-5 py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-full text-xs font-semibold transition-colors">Design</button>
+                    <button
+                        class="px-5 py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-full text-xs font-semibold transition-colors">Gaming</button>
+                    <button
+                        class="p-2.5 bg-surface-container-high text-on-surface-variant rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm">expand_more</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- Video Grid -->
+        <section class="grid grid-cols-2 gap-x-8 gap-y-10 pb-10">
+            <!-- Video Tile 1 -->
+            <article class="flex flex-col gap-3 group cursor-pointer">
+                <div class="relative rounded-2xl overflow-hidden aspect-video bg-surface-container-high">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        data-alt="cinematic shot of a cozy cafe interior with warm morning light streaming through large windows and steam rising from a coffee cup"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe1FXPR9rYb9jVyVIWWGEjgWHl5qWpU1a--uqC-ijveKgCLrx4HsuwmZIpezF_cp1j7Ww-RqFl0zgQiG8nKYtgcpcP5MZ4HOqgVioCz1g3PtyZeomIS-t3QihiAG9j0uO-w1T82mwKM2ih4CLreDmSWTAkZcKU-ClH6B7UFvXx_Q4P_kAlkhTVoeYSuYmQt_SIPmd65px6BZrJH4fZTZDnofphJvY8xIoYxL2dpmfI4WB23foUt4sh8dxtK2ZznAJPyOtbyKZLpDdk" />
+                    <div
+                        class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wider">
+                        12:45</div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <h3 class="text-sm font-bold leading-snug line-clamp-2">The Art of Stillness: A Morning in Kyoto
+                    </h3>
+                    <p class="text-[11px] font-medium text-on-surface-variant/70 uppercase tracking-tighter">Quiet
+                        Journeys</p>
+                </div>
+            </article>
+            <!-- Video Tile 2 -->
+            <article class="flex flex-col gap-3 group cursor-pointer">
+                <div class="relative rounded-2xl overflow-hidden aspect-video bg-surface-container-high">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        data-alt="vibrant abstract digital artwork featuring fluid gradients of mint green and soft peach with subtle geometric patterns"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDC5ZogzsDtut2lm9Y6yE1uumcTRNGJuQBG3YBOqS4iR_SgssMkSUH2p6TjvADIR2Eq-dz6yn9ayjfR1NOzGQnafa-jpfEyGP0SQt0_z0B7mHpp43xVh2jrQPW1Me0DX8Tx1q3e7R619WCoboJsTK_6Gd_7wUiIQWw7HWju8jSP7hOzG4d9i68C5NM22_mpkgP45taB7z8ciWJzGG8JotWKBdFab62vl9KBaJENm91XHe2uiFcM8KuBblo6Tj3gVH6_iZc2KnsaGOkS" />
+                    <div
+                        class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wider">
+                        08:20</div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <h3 class="text-sm font-bold leading-snug line-clamp-2">Designing the Future: Minimalism in 2024
+                    </h3>
+                    <p class="text-[11px] font-medium text-on-surface-variant/70 uppercase tracking-tighter">Creative
+                        Flux</p>
+                </div>
+            </article>
+            <!-- Video Tile 3 -->
+            <article class="flex flex-col gap-3 group cursor-pointer">
+                <div class="relative rounded-2xl overflow-hidden aspect-video bg-surface-container-high">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        data-alt="breathaking wide landscape of misty mountains at dawn with soft pastel sky and deep green forest silhouette"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnq6B-v7HEIeAW8JeNwxWrTeusc6QTa2dEt0sa5rrX4Sb4dPwpoJCVKYeL9HhxxaEg4nEst7J1TDLqhrcWh8AbHqXNnsS7Kzl5G8vMwon-eXXUS63Si2b4hkgkWsHsZMei3q5IiOHKx9MHYw162vx4OO4b_6bkn9nvMCvlPtbHthOqf_TwXbtaeZA224211hRhvnWBmyW2LSD96k0iE3EYdS2U-1vQi5LpCMJ82X3kOBWMSQuKKYFdU_H1iKvDibB0GFBiu8l4vjTX" />
+                    <div
+                        class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wider">
+                        15:10</div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <h3 class="text-sm font-bold leading-snug line-clamp-2">Ambient Earth: Deep Forest Sleep Sounds</h3>
+                    <p class="text-[11px] font-medium text-on-surface-variant/70 uppercase tracking-tighter">Nature
+                        Echoes</p>
+                </div>
+            </article>
+            <!-- Video Tile 4 -->
+            <article class="flex flex-col gap-3 group cursor-pointer">
+                <div class="relative rounded-2xl overflow-hidden aspect-video bg-surface-container-high">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        data-alt="close-up of a golden retriever puppy looking curiously at the camera in a soft focus garden setting with warm sunlight"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxbhObmr4c4eotwGJxksV-acUli-xA6u94xNbTlZFvmLIE5RQ_4cl7LYc8-4ef1aSZBd-_cioCCbC2G44mFxE5_i3sndkUM7A9fkOjUn-GZ_9BxKYqd5zmkXx0WqqAHWcBRqxG8BKMyJEOtZNboWyAlrJ9DNDKcH83GmIxb-bKjS1RN7JXxxh6CUNGeRS9LJpg9qo_kfCW2HSIKCVRu9PMhmMM2i6rxWN52INlflKEOWtRmDiIGaFrzVtNxlelB7iqTHtlMCYE9cwP" />
+                    <div
+                        class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wider">
+                        05:54</div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <h3 class="text-sm font-bold leading-snug line-clamp-2">Day in the Life: Living with a Golden</h3>
+                    <p class="text-[11px] font-medium text-on-surface-variant/70 uppercase tracking-tighter">Paw Prints
+                    </p>
+                </div>
+            </article>
+        </section>
+    </main>
+    <!-- RIGHT PANEL: ACTIVE PLAYER -->
+    <aside class="w-[40%] h-full bg-surface-container-low overflow-y-auto px-8 py-8 flex flex-col gap-6">
+        <!-- Video Player Mockup -->
+        <div
+            class="w-full aspect-video bg-on-surface rounded-2xl overflow-hidden relative shadow-xl shadow-on-surface/5">
+            <img class="w-full h-full object-cover opacity-90"
+                data-alt="cinematic shot of a vintage workstation with glowing mechanical keyboard and retro computer monitor in a dimly lit room"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrAOiP0auVePvbPZR1juv2qCj51K3r8lJBHYglSGTp7FH5nzV8DoOt1U6vlcmwVfr0XbUVneQWOwRosWKhgsxJ9i5h30tTnuThdbEajDLaHmJxHKZjpCaN6aqAcpHKUM_lQ_hEo49n1Xdv9rHpzFxfocf3e4RwhE6BuenHwKDdRuwftPxajfVNDIr2C7yrYFYwPSr9ZCB-5HEUu3JsMZJ0BAsoZW_jFEJ4qWhxl7TFNtj6gJDzaYVnHXzgXOPMpRUjZ0muMsioas70" />
+            <!-- Player Controls UI Mock -->
+            <div
+                class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/60 to-transparent flex flex-col gap-3">
+                <div class="h-1 w-full bg-white/30 rounded-full relative overflow-hidden">
+                    <div class="absolute top-0 left-0 h-full w-1/3 bg-primary-container"></div>
+                </div>
+                <div class="flex justify-between items-center text-white">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-lg">play_arrow</span>
+                        <span class="material-symbols-outlined text-lg">skip_next</span>
+                        <span class="material-symbols-outlined text-lg">volume_up</span>
+                        <span class="text-xs font-medium">04:12 / 12:45</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-lg">settings</span>
+                        <span class="material-symbols-outlined text-lg">fullscreen</span>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div
+                    class="w-16 h-16 rounded-full bg-surface/20 backdrop-blur-xl flex items-center justify-center border border-white/20">
+                    <span class="material-symbols-outlined text-white text-3xl"
+                        style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                </div>
+            </div>
+        </div>
+        <!-- Video Details -->
+        <div class="flex flex-col gap-4">
+            <h1 class="text-2xl font-extrabold tracking-tight text-on-surface leading-tight">The Art of Stillness: A
+                Morning in Kyoto</h1>
+            <div class="w-full h-[1px] bg-outline-variant/15 my-2"></div>
+            <div class="flex flex-col gap-4">
+                <div class="bg-surface-container-lowest/50 p-6 rounded-2xl">
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-primary mb-3">About this video</h4>
+                    <p class="text-sm text-on-surface-variant leading-relaxed font-medium">
+                        Explore the quiet corners of Kyoto's historic districts in the early morning light. This journey
+                        captures the meditative atmosphere of traditional temples, silent moss gardens, and the gentle
+                        ritual of the tea ceremony.
+                        <br /><br />
+                        Filmed in 4K resolution to capture every texture of stone, wood, and water. Designed for deep
+                        focus, relaxation, or as a background for study.
+                    </p>
+                </div>
+                <!-- Metadata "Tags" as curated Tray style -->
+                <div class="flex flex-wrap gap-2">
+                    <span
+                        class="px-3 py-1.5 bg-tertiary-container/30 text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wider">Cinematic</span>
+                    <span
+                        class="px-3 py-1.5 bg-tertiary-container/30 text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wider">Travel</span>
+                    <span
+                        class="px-3 py-1.5 bg-tertiary-container/30 text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wider">4K</span>
+                    <span
+                        class="px-3 py-1.5 bg-tertiary-container/30 text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wider">ASMR</span>
+                </div>
+            </div>
+        </div>
+        <!-- Suggestion Section -->
+        <div class="mt-auto pt-8 border-t border-outline-variant/10">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">More from this
+                    channel</span>
+                <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+            </div>
+            <div class="flex gap-4">
+                <div class="w-24 aspect-video rounded-lg overflow-hidden bg-surface-container-highest shrink-0">
+                    <img class="w-full h-full object-cover"
+                        data-alt="close-up of ancient Japanese calligraphy brush strokes on handmade paper"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDj9es40SJyFMrI1BAGUAHr2t5YH0Vi73g7AimjeThBC6gQoU8J4vD_JGUdXtyvdCokN88yEx7XM3l9YBXwC9W7dw6QCRdjB1CU3Mi3Zek1e7SsFkIDsnOkCXx2Vt378eAMwLC6mXTGmgAtGVAcbcSp7nkJee4CXX-Llp0eVK7BfFobd15USCku8aMt0Vp1do_GP8DExrRQqto7LYkcQoN6mNQUg9rrYOXD5CiZA-KZ0Csxayy4CiFaZBr2IA-f36_AGuCqgfM_0jyP" />
+                </div>
+                <div class="flex flex-col justify-center gap-1">
+                    <p class="text-[11px] font-bold line-clamp-1">Wabi Sabi Philosophy Explained</p>
+                    <p class="text-[9px] font-medium text-on-surface-variant/60">06:22</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+</body>
+
+</html>
