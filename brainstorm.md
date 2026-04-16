@@ -141,6 +141,7 @@ Desktop-readiness constraints to keep in mind early:
 ✅ **Update Tracking:** Track `last_updated` (null if never fetched) per channel
 ✅ **Upload Frequency:** Store `upload_frequency` per channel (default: biweekly, algo later to auto-detect)
 ✅ **Sorting:** By publish_date DESC (newest first)
+✅ **Ingestion Filters:** Exclude videos with `#shorts` in description and videos shorter than 2 minutes
 ✅ **Recommendation Theme:** Time-of-day feed shaping for healthier viewing behavior
 
 ---
@@ -539,6 +540,9 @@ Fetch RSS feed: https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}
 Parse XML → Extract video items
     ↓
 For each video:
+  - If description contains "#shorts" (case-insensitive): SKIP
+  - If duration_seconds < 120: SKIP
+  - If duration is missing/unavailable: SKIP
     - Check if video_id already exists in DB
     - If new: INSERT into videos table
     - If exists: SKIP (avoid duplicates)
