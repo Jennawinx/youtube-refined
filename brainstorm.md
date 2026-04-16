@@ -465,7 +465,9 @@ RSS = "Really Simple Syndication" or "RDF Site Summary"
 
 #### Limitations
 - Limited metadata: Title, description, upload date, thumbnail
+- **No duration field in YouTube RSS:** duration is generally not available in the feed payload
 - **NO statistics:** View count, likes, comments NOT in RSS feed
+- Video descriptions are often creator notes/promotions and are not a reliable indicator of true video topic
 - Updates are delayed (15-30 minutes after video upload)
 - Most recent ~15 videos per channel
 
@@ -525,6 +527,9 @@ Writing code to automatically visit YouTube.com, parse HTML, and extract data wi
 - Fully legal & ToS compliant
 - Simple to implement
 - Can upgrade to full API later if needed
+
+**Near-future direction:**
+- We may move to YouTube API soon to reliably access duration and richer metadata for better filtering and ranking
 ---
 
 ## RSS Fetch Workflow
