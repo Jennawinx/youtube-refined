@@ -54,8 +54,6 @@ ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS", default="localhost,127.0.0.1")
 
 # OpenAI configuration
 LLM_API_KEY = os.getenv("LLM_API_KEY")
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
-
 
 # Application definition
 
