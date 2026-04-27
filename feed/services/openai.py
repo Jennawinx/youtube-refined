@@ -58,13 +58,15 @@ sample_output = {
 system_message = f"""
 Help categorize the video.
 For presentation select 1 of {", ".join(presentation)}.
-For topics select any of {", ".join(presentation)}.
+For topics select any of {", ".join(topics)}.
 For energy give 1-10 rating on how stimulating content is.
 Example
 {json.dumps(sample_output, separators=(',', ':'))}
 """
 
-print("Initialized openai client and system prompts:")
+print(
+    "=============================================\nInitialized openai client and system prompts:\n=============================================\n"
+)
 print(f"Categorize Video System Message:\n{system_message}")
 
 
@@ -74,17 +76,26 @@ class CategorizeVideoOutput:
     topics: list[str]
     energy: int = 0
 
+
 def categorize_video(url: str, title: str) -> CategorizeVideoOutput:
     response = client.responses.create(
         model="gpt-4o-mini",
         instructions=system_message,
         input=[
             {
-                "thumbnail_url": "https://i1.ytimg.com/vi/8QsHpDjzunY/hqdefault.jpg",
-                "title": "Raising kids: the Japanese or American way?",
+                "role": "user",
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": "Analyze this video: Title: 'Raising kids: the Japanese or American way?'",
+                    },
+                    {
+                        "type": "input_image",
+                        "image_url": "https://i1.ytimg.com/vi/8QsHpDjzunY/hqdefault.jpg",
+                    },
+                ],
             }
         ],
-        # text={"format": {"type": "text"}},
         reasoning={},
         max_output_tokens=1024,
         store=True,
