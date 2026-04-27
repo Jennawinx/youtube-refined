@@ -54,17 +54,19 @@ topics = [
     "Travel",
 ]
 
-sample_output = {
+sample_output = [{
     "presentation": "Vlog",
     "topics": ["ASMR", "Art", "Nature"],
     "energy": 2,
-}
+    "educational": 1,
+}]
 
 system_message = f"""
-Help categorize the video.
+Help categorize the videos.
 For presentation select 1 of {", ".join(presentation)}.
 For topics select any of {", ".join(topics)}.
 For energy give 1-10 rating on how stimulating content is.
+For educational give 1-10 rating on how useful content is for daily use or hobbies.
 Example
 {json.dumps(sample_output, separators=(',', ':'))}
 """
@@ -75,6 +77,29 @@ print(
 print(f"Categorize Video System Message:\n{system_message}")
 
 
+"""
+example inputs
+[
+  {
+    "thumbnail_url": "https://i1.ytimg.com/vi/DA0wx41nWzw/hqdefault.jpg",
+    "title": "Trying to teach Pichi literally any trick"
+  },
+  {
+    "thumbnail_url": "https://i1.ytimg.com/vi/8QsHpDjzunY/hqdefault.jpg",
+    "title": "Raising kids: the Japanese or American way?"
+  },
+  {
+    "thumbnail_url": "https://i.ytimg.com/vi/JstGCPsj9wg/hq720.jpg",
+    "title": "How Tech Companies Lie to You."
+  },
+  {
+    "thumbnail_url": "https://i.ytimg.com/vi/cTymndypryw/hq720.jpg",
+    "title": "Quiet Night Reset | 夜の静けさ – Relaxing Music to Unwind & Clear Your Mind"
+  }
+]
+"""
+
+
 @dataclass
 class CategorizeVideoOutput:
     presentation: str
@@ -82,26 +107,20 @@ class CategorizeVideoOutput:
     energy: int = 0
 
 
+# TODO: support many to save tokens
 def categorize_video(url: str, title: str) -> CategorizeVideoOutput:
     response = client.responses.create(
         # model="gpt-5.4-nano", # Better with instructions
         model="gpt-4o-mini",
         instructions=system_message,
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "input_text",
-                        "text": "Analyze this video: Title: 'Raising kids: the Japanese or American way?'",
-                    },
-                    {
-                        "type": "input_image",
-                        "image_url": "https://i1.ytimg.com/vi/8QsHpDjzunY/hqdefault.jpg",
-                    },
-                ],
-            }
-        ],
+        input=json.dumps(
+            [
+                {
+                    "thumbnail_url": "https://i.ytimg.com/vi/cTymndypryw/hq720.jpg",
+                    "title": "Quiet Night Reset | 夜の静けさ – Relaxing Music to Unwind & Clear Your Mind",
+                }
+            ]
+        ),
         reasoning={},
         max_output_tokens=1024,
         store=True,
