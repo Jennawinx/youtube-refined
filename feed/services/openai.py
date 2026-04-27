@@ -1,5 +1,6 @@
-from openai import OpenAI
 import json
+from dataclasses import dataclass
+from openai import OpenAI
 from youtube_refined.settings import LLM_API_KEY
 
 client = OpenAI(api_key=LLM_API_KEY)
@@ -63,20 +64,31 @@ Example
 {json.dumps(sample_output, separators=(',', ':'))}
 """
 
-print(system_message)
+print("Initialized openai client and system prompts:")
+print(f"Categorize Video System Message:\n{system_message}")
 
-response = client.responses.create(
-    model="gpt-4o-mini",
-    instructions=system_message,
-    input=[
-        {
-            "thumbnail_url": "https://i1.ytimg.com/vi/8QsHpDjzunY/hqdefault.jpg",
-            "title": "Raising kids: the Japanese or American way?",
-        }
-    ],
-    # text={"format": {"type": "text"}},
-    reasoning={},
-    max_output_tokens=1024,
-    store=True,
-    include=["web_search_call.action.sources"],
-)
+
+@dataclass
+class CategorizeVideoOutput:
+    presentation: str
+    topics: list[str]
+    energy: int = 0
+
+def categorize_video(url: str, title: str) -> CategorizeVideoOutput:
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        instructions=system_message,
+        input=[
+            {
+                "thumbnail_url": "https://i1.ytimg.com/vi/8QsHpDjzunY/hqdefault.jpg",
+                "title": "Raising kids: the Japanese or American way?",
+            }
+        ],
+        # text={"format": {"type": "text"}},
+        reasoning={},
+        max_output_tokens=1024,
+        store=True,
+        include=["web_search_call.action.sources"],
+    )
+    print(response)
+    return response.output
