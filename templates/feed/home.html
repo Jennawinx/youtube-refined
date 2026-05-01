@@ -161,8 +161,24 @@
                         <p class="text-[11px] font-medium text-on-surface-variant/70 uppercase tracking-tighter">
                             {{ video.channel.name }}
                         </p>
+                        <p class="text-[10px] text-on-surface-variant/70">
+                            {{ video.publish_date|date:"M d, Y" }}
+                        </p>
+                    </div>
+                    <a href="{{ video.url }}" target="_blank" rel="noopener noreferrer" class="text-sm font-bold leading-snug line-clamp-2 hover:text-primary transition-colors">
+                        {{ video.title }}
+                    </a>
+                    {% if video.category_tags or video.energy or video.educational %}
+                    <div class="flex justify-between items-start gap-2 mt-1">
+                        <div class="flex flex-wrap gap-1">
+                            {% for tag in video.category_tags %}
+                            <span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-[9px] font-medium">
+                                {{ tag }}
+                            </span>
+                            {% endfor %}
+                        </div>
                         {% if video.energy or video.educational %}
-                        <div class="flex gap-3 text-[10px]">
+                        <div class="flex flex-col gap-1 text-[10px] flex-shrink-0 items-end">
                             {% if video.energy %}
                             <div class="flex items-center gap-1">
                                 <span class="text-on-surface-variant/70">Energy:</span>
@@ -177,22 +193,6 @@
                             {% endif %}
                         </div>
                         {% endif %}
-                    </div>
-                    <a href="{{ video.url }}" target="_blank" rel="noopener noreferrer" class="text-sm font-bold leading-snug line-clamp-2 hover:text-primary transition-colors">
-                        {{ video.title }}
-                    </a>
-                    {% if video.category_tags or video.energy or video.educational %}
-                    <div class="flex justify-between items-start gap-2 mt-1">
-                        <div class="flex flex-wrap gap-1">
-                            {% for tag in video.category_tags %}
-                            <span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-[9px] font-medium">
-                                {{ tag }}
-                            </span>
-                            {% endfor %}
-                        </div>
-                        <p class="text-[10px] text-on-surface-variant/50 flex-shrink-0">
-                            {{ video.publish_date|date:"M d, Y" }}
-                        </p>
                     </div>
                     {% endif %}
                 </div>
