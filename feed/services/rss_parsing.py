@@ -12,7 +12,7 @@ class RssRefreshError(Exception):
     pass
 
 @dataclass
-class ParsedVideo:
+class RssVideo:
     video_id: str
     title: str
     description: str
@@ -20,7 +20,7 @@ class ParsedVideo:
     thumbnail_url: str
     publish_date: datetime
 
-def parse_xml_feed(xml_bytes: bytes) -> list[ParsedVideo]:
+def parse_xml_feed(xml_bytes: bytes) -> list[RssVideo]:
     return [_serialize_video(entry) for entry in _json_feed(xml_bytes)]
 
 def _json_feed(xml_bytes: bytes) -> list[dict]:
@@ -32,10 +32,10 @@ def _json_feed(xml_bytes: bytes) -> list[dict]:
     feed_data = _parse_xml_to_json(root)
     return _get_as_list(feed_data.get("entry"))
 
-def _serialize_video(entry: dict) -> ParsedVideo:
+def _serialize_video(entry: dict) -> RssVideo:
     media_group = _get_as_dict(entry.get("group"))
 
-    return ParsedVideo(
+    return RssVideo(
         video_id=_get_required_value(entry, "videoId"),
         title=_get_required_value(entry, "title"),
         description=_get_text_value(media_group.get("description")),

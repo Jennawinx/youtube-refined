@@ -35,10 +35,9 @@ def home(request):
                 )
             else:
                 try:
-                    stats = refresh_channel(channel)
+                    createdCount = refresh_channel(channel)
                     context["refetch_success"] = (
-                        f"Refetched {stats.channel_name}: fetched={stats.fetched} "
-                        f"created={stats.created} existing={stats.existing} skipped={stats.skipped}"
+                        f"Refetched {channel.name}: created={createdCount} "
                     )
                 except RssRefreshError as exc:
                     context["refetch_error"] = str(exc)

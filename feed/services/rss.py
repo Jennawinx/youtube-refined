@@ -1,28 +1,14 @@
 from __future__ import annotations
-
-from dataclasses import dataclass
-from datetime import datetime
 from urllib.request import urlopen
-
 from django.utils import timezone
-
 from feed.models import Channel, Video
 from feed.services.rss_parsing import (
     RssRefreshError,
-    ParsedVideo,
     parse_xml_feed,
 )
 
 RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 SHORTS_MARKER = "#shorts"
-
-@dataclass
-class RefreshStats:
-    channel_name: str
-    fetched: int = 0
-    created: int = 0
-    existing: int = 0
-    skipped: int = 0
 
 def fetch_channel_feed(channel_id: str) -> bytes:
     url = RSS_FEED_URL.format(channel_id=channel_id)
@@ -32,37 +18,42 @@ def fetch_channel_feed(channel_id: str) -> bytes:
     except Exception as exc:  # pragma: no cover - network wrapper
         raise RssRefreshError(f"Unable to fetch RSS feed for channel {channel_id}") from exc
 
-def refresh_channel(channel: Channel) -> RefreshStats:
-    xml_bytes = fetch_channel_feed(channel.channel_id)
-    parsed_videos = parse_xml_feed(xml_bytes)
-    print(f"Fetched {len(parsed_videos)} videos for channel {channel.name}")
-    print(parsed_videos)
-    stats = RefreshStats(channel_name=channel.name, fetched=len(parsed_videos))
+def refresh_channel(channel: Channel) -> int:
+    _xml_bytes = fetch_channel_feed(channel.channel_id)
+    _videos = parse_xml_feed(_xml_bytes)
 
-    for parsed_video in parsed_videos:
-        if SHORTS_MARKER in parsed_video.description.lower():
-            stats.skipped += 1
-            continue
+    print(_videos)
 
+    # Filter out shorts 
+    videos_list = [v for v in _videos if not (SHORTS_MARKER in v.description.lower())]
+    video_ids = {v.video_id for v in videos_list}
+    existing_video_ids = set(Video.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True))
+    new_videos = [v for v in videos_list if v.video_id not in existing_video_ids]
+    createdCount = 0
+
+    print(f"Found {len(new_videos)} new videos for channel {channel.name}")
+    print(new_videos)
+
+    for video in new_videos:
         _, created = Video.objects.get_or_create(
-            video_id=parsed_video.video_id,
+            video_id=video.video_id,
             defaults={
                 "channel": channel,
-                "title": parsed_video.title,
-                "description": parsed_video.description,
-                "url": parsed_video.url,
-                "thumbnail_url": parsed_video.thumbnail_url,
-                "publish_date": parsed_video.publish_date,
+                "title": video.title,
+                "description": video.description,
+                "url": video.url,
+                "thumbnail_url": video.thumbnail_url,
+                "publish_date": video.publish_date,
             },
         )
         if created:
-            stats.created += 1
-        else:
-            stats.existing += 1
+            createdCount += 1
 
     channel.last_updated = timezone.now()
-    channel.save(update_fields=["last_updated", "updated_at"])
-    return stats
+    channel.save(update_fields=["last_updated"])
 
-def refresh_all_channels() -> list[RefreshStats]:
-    return [refresh_channel(channel) for channel in Channel.objects.all()]
+    return createdCount
+
+def refresh_all_channels() -> None:
+    for channel in Channel.objects.all():
+        refresh_channel(channel)

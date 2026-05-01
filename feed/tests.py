@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from feed.services.rss import ParsedVideo, parse_feed, should_skip_video
+from feed.services.rss import RssVideo, parse_feed, should_skip_video
 
 
 SAMPLE_FEED = b"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -45,7 +45,7 @@ class RssServiceTests(TestCase):
         self.assertEqual(parsed_videos[0].thumbnail_url, "https://img.youtube.com/test.jpg")
 
     def test_should_skip_video_detects_shorts_marker_case_insensitively(self):
-        parsed_video = ParsedVideo(
+        parsed_video = RssVideo(
             video_id="abc",
             title="Title",
             description="new #ShOrTs clip",
@@ -57,7 +57,7 @@ class RssServiceTests(TestCase):
         self.assertTrue(should_skip_video(parsed_video))
 
     def test_should_skip_video_detects_short_duration(self):
-        parsed_video = ParsedVideo(
+        parsed_video = RssVideo(
             video_id="abc",
             title="Title",
             description="normal video",
@@ -69,7 +69,7 @@ class RssServiceTests(TestCase):
         self.assertTrue(should_skip_video(parsed_video))
 
     def test_should_skip_video_allows_missing_duration_by_default(self):
-        parsed_video = ParsedVideo(
+        parsed_video = RssVideo(
             video_id="abc",
             title="Title",
             description="normal video",
@@ -81,7 +81,7 @@ class RssServiceTests(TestCase):
         self.assertFalse(should_skip_video(parsed_video))
 
     def test_should_skip_video_blocks_missing_duration_in_strict_mode(self):
-        parsed_video = ParsedVideo(
+        parsed_video = RssVideo(
             video_id="abc",
             title="Title",
             description="normal video",
