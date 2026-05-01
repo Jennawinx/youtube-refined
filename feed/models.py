@@ -28,8 +28,9 @@ class Video(models.Model):
     url = models.URLField()
     thumbnail_url = models.URLField(blank=True)
     publish_date = models.DateTimeField()
-    category_tags = models.TextField(blank=True)  # JSON array e.g. ["motivation", "morning-routine"]
-    energy = models.IntegerField(null=True, blank=True)  # 1-10 stimulation rating
+    category_tags = models.JSONField(blank=True, default=list)  # JSON array e.g. ["motivation", "morning-routine"]
+    energy = models.IntegerField(default=0)  # 1-10 stimulation rating
+    educational = models.IntegerField(default=0)  # 1-10 educational rating
     duration_seconds = models.IntegerField(null=True, blank=True)
     is_watched = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
