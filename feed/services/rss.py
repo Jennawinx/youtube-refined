@@ -24,15 +24,8 @@ class RefreshStats:
     existing: int = 0
     skipped: int = 0
 
-
 def refresh_all_channels() -> list[RefreshStats]:
     return [refresh_channel(channel) for channel in Channel.objects.all()]
-
-def should_skip_video(parsed_video: ParsedVideo) -> bool:
-    if SHORTS_MARKER in parsed_video.description.lower():
-        return True
-    else:
-        return False
 
 def refresh_channel(channel: Channel) -> RefreshStats:
     xml_bytes = fetch_channel_feed(channel.channel_id)
@@ -42,7 +35,7 @@ def refresh_channel(channel: Channel) -> RefreshStats:
     stats = RefreshStats(channel_name=channel.name, fetched=len(parsed_videos))
 
     for parsed_video in parsed_videos:
-        if should_skip_video(parsed_video):
+        if SHORTS_MARKER in parsed_video.description.lower():
             stats.skipped += 1
             continue
 
