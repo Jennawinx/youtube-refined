@@ -119,22 +119,13 @@ class CategorizedVideo:
 
 
 def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
-
-    print(list_of_videos)
-    print(
-        [
-            {"thumbnail_url": v["thumbnail_url"], "title": v["title"]}
-            for v in list_of_videos
-        ],
-    )
-
     response = client.responses.create(
         # model="gpt-5.4-nano", # Better with instructions
         model="gpt-4o-mini",
         instructions=system_message,
         input=json.dumps(
             [
-                {"thumbnail_url": v["thumbnail_url"], "title": v["title"]}
+                {"thumbnail_url": v.thumbnail_url, "title": v.title}
                 for v in list_of_videos
             ],
             separators=(",", ":"),
@@ -153,6 +144,7 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
 
     try:
         json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
+        print(json_snippet)
         results = json.loads(json_snippet)
         for result in results:
             categorizedVideos.append(
