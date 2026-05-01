@@ -24,8 +24,13 @@ class RefreshStats:
     existing: int = 0
     skipped: int = 0
 
-def refresh_all_channels() -> list[RefreshStats]:
-    return [refresh_channel(channel) for channel in Channel.objects.all()]
+def fetch_channel_feed(channel_id: str) -> bytes:
+    url = RSS_FEED_URL.format(channel_id=channel_id)
+    try:
+        with urlopen(url, timeout=30) as response:
+            return response.read()
+    except Exception as exc:  # pragma: no cover - network wrapper
+        raise RssRefreshError(f"Unable to fetch RSS feed for channel {channel_id}") from exc
 
 def refresh_channel(channel: Channel) -> RefreshStats:
     xml_bytes = fetch_channel_feed(channel.channel_id)
@@ -59,13 +64,5 @@ def refresh_channel(channel: Channel) -> RefreshStats:
     channel.save(update_fields=["last_updated", "updated_at"])
     return stats
 
-
-def fetch_channel_feed(channel_id: str) -> bytes:
-    url = RSS_FEED_URL.format(channel_id=channel_id)
-    try:
-        with urlopen(url, timeout=30) as response:
-            return response.read()
-    except Exception as exc:  # pragma: no cover - network wrapper
-        raise RssRefreshError(f"Unable to fetch RSS feed for channel {channel_id}") from exc
-
-
+def refresh_all_channels() -> list[RefreshStats]:
+    return [refresh_channel(channel) for channel in Channel.objects.all()]
