@@ -9,27 +9,12 @@ from django.utils import timezone
 from feed.models import Channel, Video
 from feed.services.rss_parsing import (
     RssRefreshError,
-    get_alternate_link,
-    get_as_dict,
-    get_attribute_value,
-    get_required_value,
-    get_text_value,
-    parse_feed as parse_feed_entries,
-    parse_published_datetime,
+    ParsedVideo,
+    parse_xml_feed,
 )
 
 RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 SHORTS_MARKER = "#shorts"
-
-@dataclass
-class ParsedVideo:
-    video_id: str
-    title: str
-    description: str
-    url: str
-    thumbnail_url: str
-    publish_date: datetime
-
 
 @dataclass
 class RefreshStats:
@@ -91,18 +76,3 @@ def fetch_channel_feed(channel_id: str) -> bytes:
         raise RssRefreshError(f"Unable to fetch RSS feed for channel {channel_id}") from exc
 
 
-def parse_xml_feed(xml_bytes: bytes) -> list[ParsedVideo]:
-    return [parse_entry(entry) for entry in parse_feed_entries(xml_bytes)]
-
-
-def parse_entry(entry: dict) -> ParsedVideo:
-    media_group = get_as_dict(entry.get("group"))
-
-    return ParsedVideo(
-        video_id=get_required_value(entry, "videoId"),
-        title=get_required_value(entry, "title"),
-        description=get_text_value(media_group.get("description")),
-        url=get_alternate_link(entry),
-        thumbnail_url=get_attribute_value(media_group.get("thumbnail"), "url"),
-        publish_date=parse_published_datetime(get_required_value(entry, "published")),
-    )
