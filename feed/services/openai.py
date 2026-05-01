@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+import re
 from openai import OpenAI
 from youtube_refined.settings import LLM_API_KEY
 
@@ -71,6 +72,7 @@ For energy give 1-10 rating on how stimulating content is.
 For educational give 1-10 rating on how useful content is for daily use or hobbies.
 Example
 {json.dumps(sample_output, separators=(',', ':'))}
+Return result in JSON array
 """
 
 print(
@@ -115,17 +117,57 @@ class CategorizedVideo:
     energy: int = 0
     educational: int = 0
 
-# TODO: support many to save tokens
-def categorize_video(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+
+def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+
+    print(list_of_videos)
+    print(
+        [
+            {"thumbnail_url": v["thumbnail_url"], "title": v["title"]}
+            for v in list_of_videos
+        ],
+    )
+
     response = client.responses.create(
         # model="gpt-5.4-nano", # Better with instructions
         model="gpt-4o-mini",
         instructions=system_message,
-        input=json.dumps(list_of_videos),
+        input=json.dumps(
+            [
+                {"thumbnail_url": v["thumbnail_url"], "title": v["title"]}
+                for v in list_of_videos
+            ],
+            separators=(",", ":"),
+        ),
+        # text={"format": {"type": "json_object"}},
         reasoning={},
         max_output_tokens=1024,
         store=True,
         include=["web_search_call.action.sources"],
     )
-    print(response)
-    return response.output
+
+    categorizedVideos: list[CategorizedVideo] = []
+    responseText = response.output[0].content[0].text
+
+    # print("gpt output:", response)
+
+    try:
+        json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
+        results = json.loads(json_snippet)
+        for result in results:
+            categorizedVideos.append(
+                CategorizedVideo(
+                    presentation=result.get("presentation", None),
+                    topics=result.get("topics", []),
+                    energy=result.get("energy", 0),
+                    educational=result.get("educational", 0),
+                )
+            )
+        print(results)
+
+    except Exception as exc:
+        print(f"Error parsing categorization response: {exc}")
+        print(f"Raw response content: {response.output[0].content[0].text}")
+        raise exc
+
+    return categorizedVideos

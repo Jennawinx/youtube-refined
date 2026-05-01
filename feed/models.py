@@ -31,6 +31,7 @@ class Video(models.Model):
     category_tags = models.JSONField(blank=True, default=list)  # JSON array e.g. ["motivation", "morning-routine"]
     energy = models.IntegerField(default=0)  # 1-10 stimulation rating
     educational = models.IntegerField(default=0)  # 1-10 educational rating
+    presentation = models.CharField(max_length=255, default="Vlog")
     duration_seconds = models.IntegerField(null=True, blank=True)
     is_watched = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

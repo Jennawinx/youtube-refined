@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 from feed.models import Channel, Video
 from feed.services.rss import RssRefreshError, refresh_channel
-from feed.services.openai import categorize_video
+from feed.services.openai import categorize_videos
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 
@@ -16,7 +16,7 @@ def home(request):
     if request.method == "POST":
         if "test_categorize" in request.POST:
             try:
-                result = categorize_video(
+                result = categorize_videos(
                     [
                         {
                             "thumbnail_url": "https://i.ytimg.com/vi/cTymndypryw/hq720.jpg",
