@@ -54,12 +54,14 @@ topics = [
     "Travel",
 ]
 
-sample_output = [{
-    "presentation": "Vlog",
-    "topics": ["ASMR", "Art", "Nature"],
-    "energy": 2,
-    "educational": 1,
-}]
+sample_output = [
+    {
+        "presentation": "Vlog",
+        "topics": ["ASMR", "Art", "Nature"],
+        "energy": 2,
+        "educational": 1,
+    }
+]
 
 system_message = f"""
 Help categorize the videos.
@@ -101,26 +103,25 @@ example inputs
 
 
 @dataclass
-class CategorizeVideoOutput:
+class VideoDetails:
+    thumbnail_url: str
+    title: str
+
+
+@dataclass
+class CategorizedVideo:
     presentation: str
     topics: list[str]
     energy: int = 0
-
+    educational: int = 0
 
 # TODO: support many to save tokens
-def categorize_video(url: str, title: str) -> CategorizeVideoOutput:
+def categorize_video(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
     response = client.responses.create(
         # model="gpt-5.4-nano", # Better with instructions
         model="gpt-4o-mini",
         instructions=system_message,
-        input=json.dumps(
-            [
-                {
-                    "thumbnail_url": "https://i.ytimg.com/vi/cTymndypryw/hq720.jpg",
-                    "title": "Quiet Night Reset | 夜の静けさ – Relaxing Music to Unwind & Clear Your Mind",
-                }
-            ]
-        ),
+        input=json.dumps(list_of_videos),
         reasoning={},
         max_output_tokens=1024,
         store=True,

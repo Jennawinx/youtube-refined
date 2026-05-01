@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from feed.services.rss import MIN_DURATION_SECONDS, ParsedVideo, parse_feed, should_skip_video
+from feed.services.rss import ParsedVideo, parse_feed, should_skip_video
 
 
 SAMPLE_FEED = b"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -43,7 +43,6 @@ class RssServiceTests(TestCase):
         self.assertEqual(len(parsed_videos), 2)
         self.assertEqual(parsed_videos[0].video_id, "test123")
         self.assertEqual(parsed_videos[0].thumbnail_url, "https://img.youtube.com/test.jpg")
-        self.assertEqual(parsed_videos[0].duration_seconds, 245)
 
     def test_should_skip_video_detects_shorts_marker_case_insensitively(self):
         parsed_video = ParsedVideo(
@@ -53,7 +52,6 @@ class RssServiceTests(TestCase):
             url="https://www.youtube.com/watch?v=abc",
             thumbnail_url="",
             publish_date=self.sample_publish_date,
-            duration_seconds=MIN_DURATION_SECONDS,
         )
 
         self.assertTrue(should_skip_video(parsed_video))
@@ -66,7 +64,6 @@ class RssServiceTests(TestCase):
             url="https://www.youtube.com/watch?v=abc",
             thumbnail_url="",
             publish_date=self.sample_publish_date,
-            duration_seconds=MIN_DURATION_SECONDS - 1,
         )
 
         self.assertTrue(should_skip_video(parsed_video))
@@ -79,7 +76,6 @@ class RssServiceTests(TestCase):
             url="https://www.youtube.com/watch?v=abc",
             thumbnail_url="",
             publish_date=self.sample_publish_date,
-            duration_seconds=None,
         )
 
         self.assertFalse(should_skip_video(parsed_video))
@@ -92,7 +88,6 @@ class RssServiceTests(TestCase):
             url="https://www.youtube.com/watch?v=abc",
             thumbnail_url="",
             publish_date=self.sample_publish_date,
-            duration_seconds=None,
         )
 
         self.assertTrue(should_skip_video(parsed_video, strict_duration=True))
