@@ -57,6 +57,7 @@ topics = [
 
 sample_output = [
     {
+        "id": "15",
         "presentation": "Vlog",
         "topics": ["ASMR", "Art", "Nature"],
         "energy": 2,
@@ -106,6 +107,7 @@ example inputs
 
 @dataclass
 class VideoDetails:
+    id: str
     thumbnail_url: str
     title: str
 
@@ -129,7 +131,7 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
         instructions=system_message,
         input=json.dumps(
             [
-                {"thumbnail_url": v.thumbnail_url, "title": v.title}
+                {"id": v.id, "thumbnail_url": v.thumbnail_url, "title": v.title}
                 for v in list_of_videos
             ],
             separators=(",", ":"),
@@ -159,7 +161,6 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
                     educational=result.get("educational", 0),
                 )
             )
-        print(results)
 
     except Exception as exc:
         print(f"Error parsing categorization response: {exc}")

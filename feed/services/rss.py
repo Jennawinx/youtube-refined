@@ -2,7 +2,7 @@ from __future__ import annotations
 from urllib.request import urlopen
 from django.utils import timezone
 from feed.models import Channel, Video
-from feed.services.openai import categorize_videos
+from feed.services.openai import VideoDetails, categorize_videos
 from feed.services.rss_parsing import (
     RssFeed,
     RssRefreshError,
@@ -20,16 +20,27 @@ def fetch_channel_feed(channel_id: str) -> bytes:
         with urlopen(url, timeout=30) as response:
             return response.read()
     except Exception as exc:  # pragma: no cover - network wrapper
-        raise RssRefreshError(f"Unable to fetch RSS feed for channel {channel_id}") from exc
+        raise RssRefreshError(
+            f"Unable to fetch RSS feed for channel {channel_id}"
+        ) from exc
 
 
 def refresh_channel_with_feed(channel: Channel, feed: RssFeed) -> int:
-    # Filter out shorts 
-    videos_list = [v for v in feed.videos if not (SHORTS_MARKER in v.description.lower())]
+    # Filter out shorts
+    videos_list = [
+        v for v in feed.videos if not (SHORTS_MARKER in v.description.lower())
+    ]
     video_ids = {v.video_id for v in videos_list}
-    existing_video_ids = set(Video.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True))
+    existing_video_ids = set(
+        Video.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True)
+    )
     new_videos = [v for v in videos_list if v.video_id not in existing_video_ids]
-    categorized_videos = categorize_videos(new_videos)
+    categorized_videos = categorize_videos(
+        [
+            VideoDetails(id=v.video_id, thumbnail_url=v.thumbnail_url, title=v.title)
+            for v in new_videos
+        ]
+    )
     createdCount = 0
 
     print(f"Found {len(new_videos)} new videos for channel {channel.name}")
