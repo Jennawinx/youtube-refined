@@ -119,6 +119,10 @@ class CategorizedVideo:
 
 
 def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+
+    if len(list_of_videos) == 0:
+        return []
+
     response = client.responses.create(
         # model="gpt-5.4-nano", # Better with instructions
         model="gpt-4o-mini",

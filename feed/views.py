@@ -14,32 +14,41 @@ def home(request):
     }
 
     if request.method == "POST":
-        if "test_categorize" in request.POST:
-            try:
-                result = categorize_videos(
-                    [
-                        {
-                            "thumbnail_url": "https://i.ytimg.com/vi/cTymndypryw/hq720.jpg",
-                            "title": "Quiet Night Reset | 夜の静けさ – Relaxing Music to Unwind & Clear Your Mind",
-                        }
-                    ]
-                )
-                context["categorize_success"] = f"Categorization result: {result}"
-            except Exception as exc:
-                context["categorize_error"] = f"Error: {str(exc)}"
-        else:
-            channel = Channel.objects.filter(channel_id=TEST_CHANNEL_ID).first()
-            if channel is None:
-                context["refetch_error"] = (
-                    f"Channel {TEST_CHANNEL_ID} was not found in the database."
-                )
-            else:
-                try:
-                    createdCount = refresh_channel(channel)
-                    context["refetch_success"] = (
-                        f"Refetched {channel.name}: created={createdCount} "
-                    )
-                except RssRefreshError as exc:
-                    context["refetch_error"] = str(exc)
+        try:
+            result = categorize_videos(
+                [
+                    {
+                        "thumbnail_url": "https://i.ytimg.com/vi/cTymndypryw/hq720.jpg",
+                        "title": "Quiet Night Reset | 夜の静けさ – Relaxing Music to Unwind & Clear Your Mind",
+                    }
+                ]
+            )
+            context["categorize_success"] = f"Categorization result: {result}"
+        except Exception as exc:
+            context["categorize_error"] = f"Error: {str(exc)}"
 
     return render(request, "feed/home.html", context=context)
+
+
+def subscriptions(request):
+    channels = Channel.objects.order_by("name")
+    context = {
+        "channels": channels,
+    }
+
+    if request.method == "POST":
+        channel = Channel.objects.filter(channel_id=TEST_CHANNEL_ID).first()
+        if channel is None:
+            context["refetch_error"] = (
+                f"Channel {TEST_CHANNEL_ID} was not found in the database."
+            )
+        else:
+            try:
+                created_count = refresh_channel(channel)
+                context["refetch_success"] = (
+                    f"Refetched {channel.name}: created={created_count}"
+                )
+            except RssRefreshError as exc:
+                context["refetch_error"] = str(exc)
+
+    return render(request, "feed/subscriptions.html", context=context)
