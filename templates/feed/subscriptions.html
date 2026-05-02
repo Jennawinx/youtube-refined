@@ -12,12 +12,12 @@
                     <p class="text-sm text-on-surface-variant/70 mt-1">Refresh channel data and review the subscriptions currently stored in the app.</p>
                 </div>
             </div>
-            <form method="post">
+            {% comment %} <form method="post">
                 {% csrf_token %}
                 <button type="submit" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm">
-                    Refresh Feed
+                    Refresh ALL
                 </button>
-            </form>
+            </form> {% endcomment %}
         </header>
 
         {% if refetch_success %}
@@ -53,6 +53,13 @@
                         {% endif %}
                     </span>
                 </div>
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="channel_id" value="{{ channel.channel_id }}" />
+                    <button type="submit" class="w-full px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold transition-transform active:scale-95 shadow-sm">
+                        Refresh Channel
+                    </button>
+                </form>
             </article>
             {% empty %}
             <div class="sm:col-span-2 lg:col-span-3 rounded-2xl border border-dashed border-outline-variant/60 px-6 py-12 text-center text-on-surface-variant/70">

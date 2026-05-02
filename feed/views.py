@@ -6,7 +6,6 @@ from feed.services.openai import categorize_videos
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 
-
 def home(request):
     videos = Video.objects.select_related("channel").order_by("-publish_date")[:20]
     context = {
@@ -37,10 +36,11 @@ def subscriptions(request):
     }
 
     if request.method == "POST":
-        channel = Channel.objects.filter(channel_id=TEST_CHANNEL_ID).first()
+        selected_channel_id = request.POST.get("channel_id", "").strip()
+        channel = Channel.objects.filter(channel_id=selected_channel_id).first()
         if channel is None:
             context["refetch_error"] = (
-                f"Channel {TEST_CHANNEL_ID} was not found in the database."
+                f"Channel {selected_channel_id or '(none)'} was not found in the database."
             )
         else:
             try:
