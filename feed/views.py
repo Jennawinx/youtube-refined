@@ -1,8 +1,9 @@
 from django.shortcuts import redirect, render
 
 from feed.models import Channel, Video
-from feed.services.rss import RssRefreshError, refresh_channel
+from feed.services.rss import RssRefreshError, fetch_channel_feed, refresh_channel, refresh_channel_with_feed
 from feed.services.openai import categorize_videos
+from feed.services.rss_parsing import parse_xml_feed
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 
@@ -68,11 +69,18 @@ def subscriptions_create(request):
         elif Channel.objects.filter(channel_id=channel_id).exists():
             context["create_error"] = f"Channel {channel_id} already exists."
         else:
-            Channel.objects.create(
+
+            xml_bytes = fetch_channel_feed(channel_id)
+            feed = parse_xml_feed(xml_bytes)
+
+            channel = Channel.objects.create(
                 channel_id=channel_id,
-                name="Unknown",
+                name=feed.name,
                 upload_frequency="biweekly",
             )
+
+            refresh_channel_with_feed(channel, feed)
+
             return redirect("subscriptions")
 
     return render(request, "feed/subscriptions_create.html", context=context)

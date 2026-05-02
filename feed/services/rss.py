@@ -4,12 +4,15 @@ from django.utils import timezone
 from feed.models import Channel, Video
 from feed.services.openai import categorize_videos
 from feed.services.rss_parsing import (
+    RssFeed,
     RssRefreshError,
     parse_xml_feed,
 )
 
+
 RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 SHORTS_MARKER = "#shorts"
+
 
 def fetch_channel_feed(channel_id: str) -> bytes:
     url = RSS_FEED_URL.format(channel_id=channel_id)
@@ -19,12 +22,10 @@ def fetch_channel_feed(channel_id: str) -> bytes:
     except Exception as exc:  # pragma: no cover - network wrapper
         raise RssRefreshError(f"Unable to fetch RSS feed for channel {channel_id}") from exc
 
-def refresh_channel(channel: Channel) -> int:
-    _xml_bytes = fetch_channel_feed(channel.channel_id)
-    _feed = parse_xml_feed(_xml_bytes)
 
+def refresh_channel_with_feed(channel: Channel, feed: RssFeed) -> int:
     # Filter out shorts 
-    videos_list = [v for v in _feed.videos if not (SHORTS_MARKER in v.description.lower())]
+    videos_list = [v for v in feed.videos if not (SHORTS_MARKER in v.description.lower())]
     video_ids = {v.video_id for v in videos_list}
     existing_video_ids = set(Video.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True))
     new_videos = [v for v in videos_list if v.video_id not in existing_video_ids]
@@ -58,6 +59,14 @@ def refresh_channel(channel: Channel) -> int:
     channel.save(update_fields=["last_updated"])
 
     return createdCount
+
+
+def refresh_channel(channel: Channel) -> int:
+    xml_bytes = fetch_channel_feed(channel.channel_id)
+    feed = parse_xml_feed(xml_bytes)
+
+    return refresh_channel_with_feed(channel, feed)
+
 
 def refresh_all_channels() -> None:
     for channel in Channel.objects.all():
