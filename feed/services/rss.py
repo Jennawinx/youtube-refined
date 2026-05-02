@@ -21,10 +21,10 @@ def fetch_channel_feed(channel_id: str) -> bytes:
 
 def refresh_channel(channel: Channel) -> int:
     _xml_bytes = fetch_channel_feed(channel.channel_id)
-    _videos = parse_xml_feed(_xml_bytes)
+    _feed = parse_xml_feed(_xml_bytes)
 
     # Filter out shorts 
-    videos_list = [v for v in _videos if not (SHORTS_MARKER in v.description.lower())]
+    videos_list = [v for v in _feed.videos if not (SHORTS_MARKER in v.description.lower())]
     video_ids = {v.video_id for v in videos_list}
     existing_video_ids = set(Video.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True))
     new_videos = [v for v in videos_list if v.video_id not in existing_video_ids]

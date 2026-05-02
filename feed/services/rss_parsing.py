@@ -7,7 +7,6 @@ from xml.etree import ElementTree
 
 from django.utils.dateparse import parse_datetime
 
-
 class RssRefreshError(Exception):
     pass
 
@@ -20,17 +19,27 @@ class RssVideo:
     thumbnail_url: str
     publish_date: datetime
 
-def parse_xml_feed(xml_bytes: bytes) -> list[RssVideo]:
-    return [_serialize_video(entry) for entry in _json_feed(xml_bytes)]
+@dataclass
+class RssFeed:
+    channel_id: str
+    name: str
+    videos: list[RssVideo]
 
-def _json_feed(xml_bytes: bytes) -> list[dict]:
+def parse_xml_feed(xml_bytes: bytes) -> RssFeed:
+    feed_data = _json_feed(xml_bytes)
+    return RssFeed(
+        channel_id=_get_text_value(feed_data.get("channelId")),
+        name=_get_text_value(feed_data.get("title")),
+        videos=[_serialize_video(entry) for entry in _get_as_list(feed_data.get("entry"))],
+    )
+
+def _json_feed(xml_bytes: bytes) -> dict:
     try:
         root = ElementTree.fromstring(xml_bytes)
     except ElementTree.ParseError as exc:
         raise RssRefreshError("Unable to parse RSS feed") from exc
 
-    feed_data = _parse_xml_to_json(root)
-    return _get_as_list(feed_data.get("entry"))
+    return _parse_xml_to_json(root)
 
 def _serialize_video(entry: dict) -> RssVideo:
     media_group = _get_as_dict(entry.get("group"))

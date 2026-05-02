@@ -36,11 +36,11 @@ SAMPLE_FEED = b"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 
 class RssServiceTests(TestCase):
     def test_parse_feed_extracts_video_fields(self):
-        parsed_videos = parse_xml_feed(SAMPLE_FEED)
+        parsed_feed = parse_xml_feed(SAMPLE_FEED)
 
-        self.assertEqual(len(parsed_videos), 2)
-        self.assertEqual(parsed_videos[0].video_id, "test123")
-        self.assertEqual(parsed_videos[0].thumbnail_url, "https://img.youtube.com/test.jpg")
+        self.assertEqual(len(parsed_feed.videos), 2)
+        self.assertEqual(parsed_feed.videos[0].video_id, "test123")
+        self.assertEqual(parsed_feed.videos[0].thumbnail_url, "https://img.youtube.com/test.jpg")
 
 
 class SubscriptionViewsTests(TestCase):
