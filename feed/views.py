@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from feed.models import Channel, Video
 from feed.services.rss import RssRefreshError, refresh_channel
@@ -52,3 +52,27 @@ def subscriptions(request):
                 context["refetch_error"] = str(exc)
 
     return render(request, "feed/subscriptions.html", context=context)
+
+
+def subscriptions_create(request):
+    context = {
+        "channel_id": "",
+    }
+
+    if request.method == "POST":
+        channel_id = request.POST.get("channel_id", "").strip()
+        context["channel_id"] = channel_id
+
+        if not channel_id:
+            context["create_error"] = "Channel ID is required."
+        elif Channel.objects.filter(channel_id=channel_id).exists():
+            context["create_error"] = f"Channel {channel_id} already exists."
+        else:
+            Channel.objects.create(
+                channel_id=channel_id,
+                name="Unknown",
+                upload_frequency="biweekly",
+            )
+            return redirect("subscriptions")
+
+    return render(request, "feed/subscriptions_create.html", context=context)

@@ -12,6 +12,9 @@
                     <p class="text-sm text-on-surface-variant/70 mt-1">Refresh channel data and review the subscriptions currently stored in the app.</p>
                 </div>
             </div>
+            <a href="{% url 'subscriptions_create' %}" class="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm">
+                Add Channel
+            </a>
             {% comment %} <form method="post">
                 {% csrf_token %}
                 <button type="submit" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm">

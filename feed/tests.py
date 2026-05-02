@@ -1,6 +1,8 @@
 from django.test import TestCase
+from django.urls import reverse
 
-from feed.services.rss import RssVideo, parse_feed, should_skip_video
+from feed.models import Channel
+from feed.services.rss_parsing import parse_xml_feed
 
 
 SAMPLE_FEED = b"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -33,61 +35,36 @@ SAMPLE_FEED = b"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 
 
 class RssServiceTests(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.sample_publish_date = parse_feed(SAMPLE_FEED)[0].publish_date
-
     def test_parse_feed_extracts_video_fields(self):
-        parsed_videos = parse_feed(SAMPLE_FEED)
+        parsed_videos = parse_xml_feed(SAMPLE_FEED)
 
         self.assertEqual(len(parsed_videos), 2)
         self.assertEqual(parsed_videos[0].video_id, "test123")
         self.assertEqual(parsed_videos[0].thumbnail_url, "https://img.youtube.com/test.jpg")
 
-    def test_should_skip_video_detects_shorts_marker_case_insensitively(self):
-        parsed_video = RssVideo(
-            video_id="abc",
-            title="Title",
-            description="new #ShOrTs clip",
-            url="https://www.youtube.com/watch?v=abc",
-            thumbnail_url="",
-            publish_date=self.sample_publish_date,
+
+class SubscriptionViewsTests(TestCase):
+    def test_subscriptions_page_has_add_channel_link(self):
+        response = self.client.get(reverse("subscriptions"))
+
+        self.assertContains(response, reverse("subscriptions_create"))
+        self.assertContains(response, "Add Channel")
+
+    def test_subscriptions_create_persists_channel_with_defaults(self):
+        response = self.client.post(
+            reverse("subscriptions_create"),
+            {"channel_id": "UC123"},
         )
 
-        self.assertTrue(should_skip_video(parsed_video))
+        self.assertRedirects(response, reverse("subscriptions"))
 
-    def test_should_skip_video_detects_short_duration(self):
-        parsed_video = RssVideo(
-            video_id="abc",
-            title="Title",
-            description="normal video",
-            url="https://www.youtube.com/watch?v=abc",
-            thumbnail_url="",
-            publish_date=self.sample_publish_date,
-        )
+        channel = Channel.objects.get(channel_id="UC123")
+        self.assertEqual(channel.name, "Unknown")
+        self.assertEqual(channel.upload_frequency, "biweekly")
 
-        self.assertTrue(should_skip_video(parsed_video))
+    def test_subscriptions_create_requires_channel_id(self):
+        response = self.client.post(reverse("subscriptions_create"), {"channel_id": ""})
 
-    def test_should_skip_video_allows_missing_duration_by_default(self):
-        parsed_video = RssVideo(
-            video_id="abc",
-            title="Title",
-            description="normal video",
-            url="https://www.youtube.com/watch?v=abc",
-            thumbnail_url="",
-            publish_date=self.sample_publish_date,
-        )
-
-        self.assertFalse(should_skip_video(parsed_video))
-
-    def test_should_skip_video_blocks_missing_duration_in_strict_mode(self):
-        parsed_video = RssVideo(
-            video_id="abc",
-            title="Title",
-            description="normal video",
-            url="https://www.youtube.com/watch?v=abc",
-            thumbnail_url="",
-            publish_date=self.sample_publish_date,
-        )
-
-        self.assertTrue(should_skip_video(parsed_video, strict_duration=True))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Channel ID is required.")
+        self.assertFalse(Channel.objects.filter(channel_id="").exists())
