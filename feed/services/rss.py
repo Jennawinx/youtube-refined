@@ -11,8 +11,6 @@ from feed.services.rss_parsing import (
 
 
 RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-SHORTS_MARKER = "#shorts"
-
 
 def fetch_channel_feed(channel_id: str) -> bytes:
     url = RSS_FEED_URL.format(channel_id=channel_id)
@@ -28,7 +26,7 @@ def fetch_channel_feed(channel_id: str) -> bytes:
 def refresh_channel_with_feed(channel: Channel, feed: RssFeed) -> int:
     # Filter out shorts
     videos_list = [
-        v for v in feed.videos if not (SHORTS_MARKER in v.description.lower())
+        v for v in feed.videos if not ("/shorts/" in v.url.lower())
     ]
     video_ids = {v.video_id for v in videos_list}
     existing_video_ids = set(
