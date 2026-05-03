@@ -34,62 +34,7 @@
         {% if videos %}
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pb-10">
             {% for video in videos %}
-            <article class="flex flex-col gap-3 group cursor-pointer">
-                <div class="relative rounded-2xl overflow-hidden aspect-video bg-surface-container-high">
-                    {% if video.thumbnail_url %}
-                        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ video.thumbnail_url }}" alt="{{ video.title }}" />
-                    {% else %}
-                        <div class="w-full h-full bg-gradient-to-br from-primary-fixed-dim to-primary-dim flex items-center justify-center">
-                            <span class="material-symbols-outlined text-4xl text-on-primary/30">video_library</span>
-                        </div>
-                    {% endif %}
-                    {% if video.duration_seconds %}
-                        <div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wider">
-                            {{ video.duration_seconds }} sec
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="flex flex-col gap-1">
-                    <div class="flex justify-between items-center">
-                        <p class="text-[11px] font-medium text-on-surface-variant/70 uppercase tracking-tighter">
-                            {{ video.channel.name }}
-                        </p>
-                        <p class="text-[10px] text-on-surface-variant/70">
-                            {{ video.publish_date|date:"M d, Y" }}
-                        </p>
-                    </div>
-                    <a href="{{ video.url }}" target="_blank" rel="noopener noreferrer" class="text-sm font-bold leading-snug line-clamp-2 hover:text-primary transition-colors">
-                        {{ video.title }}
-                    </a>
-                    {% if video.category_tags or video.energy or video.educational %}
-                    <div class="flex justify-between items-start gap-2 mt-1">
-                        <div class="flex flex-wrap gap-1">
-                            {% for tag in video.category_tags %}
-                            <span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-[9px] font-medium">
-                                {{ tag }}
-                            </span>
-                            {% endfor %}
-                        </div>
-                        {% if video.energy or video.educational %}
-                        <div class="flex flex-col gap-1 text-[10px] flex-shrink-0 items-end">
-                            {% if video.energy %}
-                            <div class="flex items-center gap-1">
-                                <span class="text-on-surface-variant/70">Energy:</span>
-                                <span class="text-on-surface-variant/70">{{ video.energy }}/10</span>
-                            </div>
-                            {% endif %}
-                            {% if video.educational %}
-                            <div class="flex items-center gap-1">
-                                <span class="text-on-surface-variant/70">Educational:</span>
-                                <span class="text-on-surface-variant/70">{{ video.educational }}/10</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-            </article>
+            {% include "feed/video_card.html" %}
             {% endfor %}
         </section>
         {% else %}
@@ -117,58 +62,22 @@
         let loading = false;
         let exhausted = {% if videos|length < 20 %}true{% else %}false{% endif %};
 
-        function buildCard(v) {
-            const thumbnail = v.thumbnail_url
-                ? `<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${v.thumbnail_url}" alt="${v.title}" />`
-                : `<div class="w-full h-full bg-gradient-to-br from-primary-fixed-dim to-primary-dim flex items-center justify-center"><span class="material-symbols-outlined text-4xl text-on-primary/30">video_library</span></div>`;
-
-            const duration = v.duration_seconds
-                ? `<div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wider">${v.duration_seconds} sec</div>`
-                : '';
-
-            const tags = (v.category_tags || []).map(t =>
-                `<span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-[9px] font-medium">${t}</span>`
-            ).join('');
-
-            const ratings = (v.energy || v.educational) ? `
-                <div class="flex flex-col gap-1 text-[10px] flex-shrink-0 items-end">
-                    ${v.energy ? `<div class="flex items-center gap-1"><span class="text-on-surface-variant/70">Energy:</span><span class="text-on-surface-variant/70">${v.energy}/10</span></div>` : ''}
-                    ${v.educational ? `<div class="flex items-center gap-1"><span class="text-on-surface-variant/70">Educational:</span><span class="text-on-surface-variant/70">${v.educational}/10</span></div>` : ''}
-                </div>` : '';
-
-            const meta = (tags || ratings) ? `
-                <div class="flex justify-between items-start gap-2 mt-1">
-                    <div class="flex flex-wrap gap-1">${tags}</div>
-                    ${ratings}
-                </div>` : '';
-
-            return `
-                <article class="flex flex-col gap-3 group cursor-pointer">
-                    <div class="relative rounded-2xl overflow-hidden aspect-video bg-surface-container-high">
-                        ${thumbnail}${duration}
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center">
-                            <p class="text-[11px] font-medium text-on-surface-variant/70 uppercase tracking-tighter">${v.channel_name}</p>
-                            <p class="text-[10px] text-on-surface-variant/70">${v.publish_date}</p>
-                        </div>
-                        <a href="${v.url}" target="_blank" rel="noopener noreferrer" class="text-sm font-bold leading-snug line-clamp-2 hover:text-primary transition-colors">${v.title}</a>
-                        ${meta}
-                    </div>
-                </article>`;
-        }
-
         async function loadMore() {
             if (loading || exhausted) return;
             loading = true;
             spinner.classList.remove('hidden');
             try {
-                const res = await fetch(`{% url 'home_more' %}?offset=${offset}`);
+                const res = await fetch(`{% url 'home_more_html' %}?offset=${offset}`);
                 if (!res.ok) return;
-                const { videos, has_more } = await res.json();
-                videos.forEach(v => grid.insertAdjacentHTML('beforeend', buildCard(v)));
-                offset += videos.length;
-                if (!has_more) exhausted = true;
+                const html = await res.text();
+                if (html.trim()) {
+                    grid.insertAdjacentHTML('beforeend', html);
+                }
+
+                const fetchedCount = Number(res.headers.get('X-Video-Count') || '0');
+                const hasMore = res.headers.get('X-Has-More') === '1';
+                offset += fetchedCount;
+                if (!hasMore || fetchedCount === 0) exhausted = true;
             } finally {
                 loading = false;
                 spinner.classList.add('hidden');

@@ -1,5 +1,6 @@
-from django.http import JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 
 from feed.models import Channel, Video
 from feed.services.rss import RssRefreshError, fetch_channel_feed, refresh_channel, refresh_channel_with_feed
@@ -33,28 +34,22 @@ def home(request):
     return render(request, "feed/home.html", context=context)
 
 
-def home_more(request):
+def home_more_html(request):
     try:
         offset = max(0, int(request.GET.get("offset", 0)))
     except (ValueError, TypeError):
         offset = 0
 
     videos = Video.objects.select_related("channel").order_by("-publish_date")[offset : offset + PAGE_SIZE]
-    data = [
-        {
-            "url": v.url,
-            "thumbnail_url": v.thumbnail_url,
-            "title": v.title,
-            "duration_seconds": v.duration_seconds,
-            "channel_name": v.channel.name,
-            "publish_date": v.publish_date.strftime("%b %-d, %Y"),
-            "category_tags": v.category_tags,
-            "energy": v.energy,
-            "educational": v.educational,
-        }
-        for v in videos
-    ]
-    return JsonResponse({"videos": data, "has_more": len(data) == PAGE_SIZE})
+    html = "".join(
+        render_to_string("feed/video_card.html", {"video": video}, request=request)
+        for video in videos
+    )
+
+    response = HttpResponse(html)
+    response["X-Has-More"] = "1" if len(videos) == PAGE_SIZE else "0"
+    response["X-Video-Count"] = str(len(videos))
+    return response
 
 
 def subscriptions(request):
