@@ -13,7 +13,7 @@
                 </div>
             </div>
             {% url 'subscriptions_create' as subscriptions_create_url %}
-            {% include "components/button_primary.html" with href=subscriptions_create_url label="Add Channel" %}
+            {% include "components/button.html" with href=subscriptions_create_url label="Add Channel" %}
             {% comment %} <form method="post">
                 {% csrf_token %}
                 <button type="submit" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm">
@@ -58,7 +58,7 @@
                 <form method="post" class="mt-4">
                     {% csrf_token %}
                     <input type="hidden" name="channel_id" value="{{ channel.channel_id }}" />
-                    {% include "components/button_primary.html" with label="Refresh Channel" full_width="1" %}
+                    {% include "components/button.html" with label="Refresh Channel" full_width="1" %}
                 </form>
             </article>
             {% empty %}
