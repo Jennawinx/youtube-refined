@@ -1,41 +1,45 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}YouTube Refined{% endblock %}
+{% block title %}
+  YouTube Refined
+{% endblock %}
 
 {% block content %}
-    <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-8">
-        <!-- Header -->
-        <header class="flex flex-col gap-6">
-            <h1 class="text-4xl font-extrabold tracking-tight">YouTube Refined</h1>
-            <div class="flex items-center gap-4">
-                {% url 'subscriptions' as subscriptions_url %}
-                {% include "components/button.html" with href=subscriptions_url label="Manage" %}
-                <form method="post" class="flex gap-2">
-                    {% csrf_token %}
-                    {% include "components/button.html" with label="Test Categorize Video" name="test_categorize" value="true" color="secondary" %}
-                </form>
-                {% include "components/banner_success.html" with message=categorize_success %}
-                {% include "components/banner_error.html" with message=categorize_error %}
-            </div>
-        </header>
+  <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-8">
+    <!-- Header -->
+    <header class="flex flex-col gap-4">
+      {% include 'components/banner_success.html' with message=categorize_success %}
+      {% include 'components/banner_error.html' with message=categorize_error %}
+      <div class="flex items-center justify-between gap-4">
+        <h1 class="text-4xl font-extrabold tracking-tight">YouTube Refined</h1>
+        <div class="flex items-center gap-3 flex-wrap">
+          <form method="post" class="flex gap-2">
+            {% csrf_token %}
+            {% include 'components/button.html' with label='Test Categorize Video' name='test_categorize' value='true' color='secondary' %}
+          </form>
+          {% url 'subscriptions' as subscriptions_url %}
+          {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
+        </div>
+      </div>
+    </header>
 
-        <!-- Video Grid -->
-        {% if videos %}
-        <section id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pb-10">
-            {% for video in videos %}
-            {% include "feed/video_card.html" %}
-            {% endfor %}
+    <!-- Video Grid -->
+    {% if videos %}
+      <section id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pb-10">
+        {% for video in videos %}
+          {% include 'feed/video_card.html' %}
+        {% endfor %}
 
-            {% if has_more %}
-            {% include "feed/home_pager.html" with next_offset=next_offset %}
-            {% endif %}
-        </section>
-        {% else %}
-        <section class="flex flex-col items-center justify-center gap-4 py-20 text-center">
-            <span class="material-symbols-outlined text-6xl text-on-surface-variant/30">video_library</span>
-            <h2 class="text-xl font-bold text-on-surface-variant">No videos yet</h2>
-            <p class="text-sm text-on-surface-variant/70">Use Manage to refresh subscriptions and fetch videos from your channels.</p>
-        </section>
+        {% if has_more %}
+          {% include 'feed/home_pager.html' with next_offset=next_offset %}
         {% endif %}
-    </main>
+      </section>
+    {% else %}
+      <section class="flex flex-col items-center justify-center gap-4 py-20 text-center">
+        <span class="material-symbols-outlined text-6xl text-on-surface-variant/30">video_library</span>
+        <h2 class="text-xl font-bold text-on-surface-variant">No videos yet</h2>
+        <p class="text-sm text-on-surface-variant/70">Use Manage to refresh subscriptions and fetch videos from your channels.</p>
+      </section>
+    {% endif %}
+  </main>
 {% endblock %}
