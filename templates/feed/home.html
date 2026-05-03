@@ -14,16 +14,8 @@
                     {% csrf_token %}
                     {% include "components/button.html" with label="Test Categorize Video" name="test_categorize" value="true" color="secondary" %}
                 </form>
-                {% if categorize_success %}
-                    <div class="px-4 py-2.5 bg-primary-container/30 text-on-surface rounded-lg text-sm font-medium">
-                        ✓ {{ categorize_success }}
-                    </div>
-                {% endif %}
-                {% if categorize_error %}
-                    <div class="px-4 py-2.5 bg-error-container/30 text-on-surface rounded-lg text-sm font-medium">
-                        ✗ {{ categorize_error }}
-                    </div>
-                {% endif %}
+                {% include "components/banner_success.html" with message=categorize_success %}
+                {% include "components/banner_error.html" with message=categorize_error %}
             </div>
         </header>
 
