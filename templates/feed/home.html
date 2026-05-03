@@ -21,6 +21,16 @@
           {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
         </div>
       </div>
+      <form method="get" class="w-full flex items-center gap-2">
+        <input
+          type="search"
+          name="q"
+          value="{{ search_query }}"
+          placeholder="Search videos by title, channel, or description"
+          class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary"
+        />
+        {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
+      </form>
     </header>
 
     <!-- Video Grid -->
@@ -37,8 +47,13 @@
     {% else %}
       <section class="flex flex-col items-center justify-center gap-4 py-20 text-center">
         <span class="material-symbols-outlined text-6xl text-on-surface-variant/30">video_library</span>
-        <h2 class="text-xl font-bold text-on-surface-variant">No videos yet</h2>
-        <p class="text-sm text-on-surface-variant/70">Use Manage to refresh subscriptions and fetch videos from your channels.</p>
+        {% if search_query %}
+          <h2 class="text-xl font-bold text-on-surface-variant">No matching videos</h2>
+          <p class="text-sm text-on-surface-variant/70">Try a different search term.</p>
+        {% else %}
+          <h2 class="text-xl font-bold text-on-surface-variant">No videos yet</h2>
+          <p class="text-sm text-on-surface-variant/70">Use Manage to refresh subscriptions and fetch videos from your channels.</p>
+        {% endif %}
       </section>
     {% endif %}
   </main>

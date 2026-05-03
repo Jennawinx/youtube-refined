@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models import Q
 from django.shortcuts import redirect, render
 
 from feed.models import Channel, Video
@@ -13,11 +14,16 @@ PAGE_SIZE = 20
 logger = logging.getLogger(__name__)
 
 
-def get_video_page(offset: int) -> tuple[list[Video], bool, int]:
+def get_video_page(offset: int, search_query: str = "") -> tuple[list[Video], bool, int]:
+    video_qs = Video.objects.select_related("channel")
+    if search_query:
+        video_qs = video_qs.filter(
+            Q(title__icontains=search_query)
+            | Q(channel__name__icontains=search_query)
+        )
+
     videos_window = list(
-        Video.objects.select_related("channel").order_by("-publish_date")[
-            offset : offset + PAGE_SIZE + 1
-        ]
+        video_qs.order_by("-publish_date")[offset : offset + PAGE_SIZE + 1]
     )
     has_more = len(videos_window) > PAGE_SIZE
     videos = videos_window[:PAGE_SIZE]
@@ -26,11 +32,13 @@ def get_video_page(offset: int) -> tuple[list[Video], bool, int]:
 
 
 def home(request):
-    videos, has_more, next_offset = get_video_page(offset=0)
+    search_query = request.GET.get("q", "").strip()
+    videos, has_more, next_offset = get_video_page(offset=0, search_query=search_query)
     context = {
         "videos": videos,
         "has_more": has_more,
         "next_offset": next_offset,
+        "search_query": search_query,
     }
 
     if request.method == "POST":
@@ -57,7 +65,9 @@ def home_more_html(request):
     except (ValueError, TypeError):
         offset = 0
 
-    videos, has_more, next_offset = get_video_page(offset=offset)
+    search_query = request.GET.get("q", "").strip()
+
+    videos, has_more, next_offset = get_video_page(offset=offset, search_query=search_query)
     return render(
         request,
         "feed/home_more.html",
@@ -65,6 +75,7 @@ def home_more_html(request):
             "videos": videos,
             "has_more": has_more,
             "next_offset": next_offset,
+            "search_query": search_query,
         },
     )
 
