@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
 from feed.models import Channel, Video
@@ -7,8 +8,10 @@ from feed.services.rss_parsing import parse_xml_feed
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 
+PAGE_SIZE = 20
+
 def home(request):
-    videos = Video.objects.select_related("channel").order_by("-publish_date")[:20]
+    videos = Video.objects.select_related("channel").order_by("-publish_date")[:PAGE_SIZE]
     context = {
         "videos": videos,
     }
@@ -28,6 +31,30 @@ def home(request):
             context["categorize_error"] = f"Error: {str(exc)}"
 
     return render(request, "feed/home.html", context=context)
+
+
+def home_more(request):
+    try:
+        offset = max(0, int(request.GET.get("offset", 0)))
+    except (ValueError, TypeError):
+        offset = 0
+
+    videos = Video.objects.select_related("channel").order_by("-publish_date")[offset : offset + PAGE_SIZE]
+    data = [
+        {
+            "url": v.url,
+            "thumbnail_url": v.thumbnail_url,
+            "title": v.title,
+            "duration_seconds": v.duration_seconds,
+            "channel_name": v.channel.name,
+            "publish_date": v.publish_date.strftime("%b %-d, %Y"),
+            "category_tags": v.category_tags,
+            "energy": v.energy,
+            "educational": v.educational,
+        }
+        for v in videos
+    ]
+    return JsonResponse({"videos": data, "has_more": len(data) == PAGE_SIZE})
 
 
 def subscriptions(request):
