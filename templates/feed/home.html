@@ -12,9 +12,7 @@
                 {% include "components/button.html" with href=subscriptions_url label="Manage" %}
                 <form method="post" class="flex gap-2">
                     {% csrf_token %}
-                    <button type="submit" name="test_categorize" value="true" class="px-6 py-2.5 bg-secondary text-on-secondary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm">
-                        Test Categorize Video
-                    </button>
+                    {% include "components/button.html" with label="Test Categorize Video" name="test_categorize" value="true" color="secondary" %}
                 </form>
                 {% if categorize_success %}
                     <div class="px-4 py-2.5 bg-primary-container/30 text-on-surface rounded-lg text-sm font-medium">

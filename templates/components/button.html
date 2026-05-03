@@ -1,10 +1,10 @@
-{% with base_classes="inline-flex items-center justify-center px-4 py-2 bg-primary text-on-primary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm text-sm" %}
+{% with base_classes="inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold transition-transform active:scale-95 shadow-sm text-sm" color_name=color|default:"primary" %}
     {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }}{% if full_width %} w-full{% endif %}{% if class_name %} {{ class_name }}{% endif %}">
+        <a href="{{ href }}" class="{{ base_classes }} bg-{{ color_name }} text-on-{{ color_name }}{% if full_width %} w-full{% endif %}{% if class_name %} {{ class_name }}{% endif %}">
             {{ label }}
         </a>
     {% else %}
-        <button type="{{ type|default:'submit' }}"{% if name %} name="{{ name }}"{% endif %}{% if value %} value="{{ value }}"{% endif %} class="{{ base_classes }}{% if full_width %} w-full{% endif %}{% if class_name %} {{ class_name }}{% endif %}">
+        <button type="{{ type|default:'submit' }}"{% if name %} name="{{ name }}"{% endif %}{% if value %} value="{{ value }}"{% endif %} class="{{ base_classes }} bg-{{ color_name }} text-on-{{ color_name }}{% if full_width %} w-full{% endif %}{% if class_name %} {{ class_name }}{% endif %}">
             {{ label }}
         </button>
     {% endif %}
