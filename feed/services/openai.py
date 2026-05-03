@@ -119,6 +119,8 @@ class CategorizedVideo:
     educational: int = 0
 
 
+# TODO: create batches, download thumbnails and resize them until width is 150px then give it to gpt.
+
 def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
 
     if len(list_of_videos) == 0:

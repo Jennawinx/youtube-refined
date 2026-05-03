@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 from urllib.request import urlopen
 from django.utils import timezone
 from feed.models import Channel, Video
@@ -12,12 +13,15 @@ from feed.services.rss_parsing import (
 
 RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 
+logger = logging.getLogger(__name__)
+
 def fetch_channel_feed(channel_id: str) -> bytes:
     url = RSS_FEED_URL.format(channel_id=channel_id)
     try:
         with urlopen(url, timeout=30) as response:
             return response.read()
     except Exception as exc:  # pragma: no cover - network wrapper
+        logger.exception("Failed to fetch RSS feed for channel_id=%s", channel_id)
         raise RssRefreshError(
             f"Unable to fetch RSS feed for channel {channel_id}"
         ) from exc
