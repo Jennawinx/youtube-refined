@@ -29,10 +29,14 @@
 
         <!-- Video Grid -->
         {% if videos %}
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pb-10">
+        <section id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pb-10">
             {% for video in videos %}
             {% include "feed/video_card.html" %}
             {% endfor %}
+
+            {% if has_more %}
+            {% include "feed/home_pager.html" with next_offset=next_offset %}
+            {% endif %}
         </section>
         {% else %}
         <section class="flex flex-col items-center justify-center gap-4 py-20 text-center">
@@ -41,51 +45,5 @@
             <p class="text-sm text-on-surface-variant/70">Use Manage to refresh subscriptions and fetch videos from your channels.</p>
         </section>
         {% endif %}
-
-        <!-- Infinite scroll sentinel -->
-        <div id="scroll-sentinel" class="h-10 flex items-center justify-center">
-            <span id="scroll-spinner" class="hidden text-sm text-on-surface-variant/50">Loading…</span>
-        </div>
     </main>
-
-    <script>
-    (function () {
-        const grid = document.querySelector('section.grid');
-        const sentinel = document.getElementById('scroll-sentinel');
-        const spinner = document.getElementById('scroll-spinner');
-        if (!grid || !sentinel) return;
-
-        let offset = {{ videos|length }};
-        let loading = false;
-        let exhausted = {% if videos|length < 20 %}true{% else %}false{% endif %};
-
-        async function loadMore() {
-            if (loading || exhausted) return;
-            loading = true;
-            spinner.classList.remove('hidden');
-            try {
-                const res = await fetch(`{% url 'home_more_html' %}?offset=${offset}`);
-                if (!res.ok) return;
-                const html = await res.text();
-                if (html.trim()) {
-                    grid.insertAdjacentHTML('beforeend', html);
-                }
-
-                const fetchedCount = Number(res.headers.get('X-Video-Count') || '0');
-                const hasMore = res.headers.get('X-Has-More') === '1';
-                offset += fetchedCount;
-                if (!hasMore || fetchedCount === 0) exhausted = true;
-            } finally {
-                loading = false;
-                spinner.classList.add('hidden');
-            }
-        }
-
-        const observer = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting) loadMore();
-        }, { rootMargin: '200px' });
-
-        observer.observe(sentinel);
-    })();
-    </script>
 {% endblock %}

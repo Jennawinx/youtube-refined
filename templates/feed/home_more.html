@@ -1,0 +1,6 @@
+{% for video in videos %}
+{% include "feed/video_card.html" %}
+{% endfor %}
+{% if has_more %}
+{% include "feed/home_pager.html" with next_offset=next_offset %}
+{% endif %}

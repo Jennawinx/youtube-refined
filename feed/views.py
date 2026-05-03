@@ -1,8 +1,6 @@
 import logging
 
-from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.template.loader import render_to_string
 
 from feed.models import Channel, Video
 from feed.services.rss import RssRefreshError, fetch_channel_feed, refresh_channel, refresh_channel_with_feed
@@ -10,15 +8,29 @@ from feed.services.openai import categorize_videos
 from feed.services.rss_parsing import parse_xml_feed
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
-
 PAGE_SIZE = 20
 
 logger = logging.getLogger(__name__)
 
+
+def get_video_page(offset: int) -> tuple[list[Video], bool, int]:
+    videos_window = list(
+        Video.objects.select_related("channel").order_by("-publish_date")[
+            offset : offset + PAGE_SIZE + 1
+        ]
+    )
+    has_more = len(videos_window) > PAGE_SIZE
+    videos = videos_window[:PAGE_SIZE]
+    next_offset = offset + len(videos)
+    return videos, has_more, next_offset
+
+
 def home(request):
-    videos = Video.objects.select_related("channel").order_by("-publish_date")[:PAGE_SIZE]
+    videos, has_more, next_offset = get_video_page(offset=0)
     context = {
         "videos": videos,
+        "has_more": has_more,
+        "next_offset": next_offset,
     }
 
     if request.method == "POST":
@@ -45,16 +57,16 @@ def home_more_html(request):
     except (ValueError, TypeError):
         offset = 0
 
-    videos = Video.objects.select_related("channel").order_by("-publish_date")[offset : offset + PAGE_SIZE]
-    html = "".join(
-        render_to_string("feed/video_card.html", {"video": video}, request=request)
-        for video in videos
+    videos, has_more, next_offset = get_video_page(offset=offset)
+    return render(
+        request,
+        "feed/home_more.html",
+        context={
+            "videos": videos,
+            "has_more": has_more,
+            "next_offset": next_offset,
+        },
     )
-
-    response = HttpResponse(html)
-    response["X-Has-More"] = "1" if len(videos) == PAGE_SIZE else "0"
-    response["X-Video-Count"] = str(len(videos))
-    return response
 
 
 def subscriptions(request):
