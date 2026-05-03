@@ -8,9 +8,8 @@
         <header class="flex flex-col gap-6">
             <h1 class="text-4xl font-extrabold tracking-tight">YouTube Refined</h1>
             <div class="flex items-center gap-4">
-                <a href="{% url 'subscriptions' %}" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm inline-flex items-center">
-                    Manage
-                </a>
+                {% url 'subscriptions' as subscriptions_url %}
+                {% include "components/button_primary.html" with href=subscriptions_url label="Manage" %}
                 <form method="post" class="flex gap-2">
                     {% csrf_token %}
                     <button type="submit" name="test_categorize" value="true" class="px-6 py-2.5 bg-secondary text-on-secondary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm">
