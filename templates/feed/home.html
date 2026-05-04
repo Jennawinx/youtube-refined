@@ -32,13 +32,13 @@
           />
           {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
         </div>
-        <div class="flex flex-wrap items-center gap-6 justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-on-surface-variant whitespace-nowrap">Mental energy</span>
+        <div class="flex flex-wrap items-center gap-2 justify-between px-4">
+          <div class="flex items-center gap-3">
+            <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Mental energy</span>
             {% include 'components/rate.html' with name='energy' selected_min=energy_min selected_max=energy_max max=10 %}
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-on-surface-variant whitespace-nowrap">Educational value</span>
+          <div class="flex items-center gap-3">
+            <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap text-right">Educational</span>
             {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
           </div>
         </div>
