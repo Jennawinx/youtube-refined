@@ -58,7 +58,7 @@ class FeedRule(models.Model):
     sunday = models.BooleanField(default=False)
     start_time = models.TimeField()
     end_time = models.TimeField()
-    category_tag = models.CharField(max_length=255, null=True, blank=False)
+    category_tags = models.JSONField(blank=True, default=list)  # JSON array of topic tags
     min_energy = models.PositiveSmallIntegerField(
         null=True,
         blank=False,

@@ -58,12 +58,12 @@
         </label>
 
         <label class="flex flex-col gap-1 md:col-span-2">
-          <span class="text-sm text-on-surface-variant">Category tag (optional)</span>
+          <span class="text-sm text-on-surface-variant">Category tags (comma-separated, optional)</span>
           <input
             type="text"
-            name="category_tag"
-            value="{{ category_tag }}"
-            placeholder="e.g. Educational"
+            name="category_tags"
+            value="{{ category_tags_input }}"
+            placeholder="e.g. Educational, Technology"
             class="rounded-lg border border-outline-variant/60 bg-surface-container-low px-3 py-2 text-sm outline-none focus:border-primary"
           />
         </label>
@@ -158,7 +158,9 @@
               <div class="space-y-1 text-sm text-on-surface-variant">
                 <p class="text-base font-semibold text-on-surface">{{ rule.name }}</p>
                 <p>Time: {{ rule.start_time }} - {{ rule.end_time }}</p>
-                {% if rule.category_tag %}<p>Category: {{ rule.category_tag }}</p>{% endif %}
+                {% if rule.category_tags %}
+                  <p>Categories: {{ rule.category_tags|join:', ' }}</p>
+                {% endif %}
                 {% if rule.min_energy or rule.max_energy %}
                   <p>Energy: {{ rule.min_energy|default:'-' }} to {{ rule.max_energy|default:'-' }}</p>
                 {% endif %}

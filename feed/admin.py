@@ -23,7 +23,7 @@ class VideoAdmin(admin.ModelAdmin):
 class FeedRuleAdmin(admin.ModelAdmin):
     list_display = (
         "name",
-        "category_tag",
+        "category_tags",
         "start_time",
         "end_time",
         "min_energy",
@@ -31,5 +31,5 @@ class FeedRuleAdmin(admin.ModelAdmin):
         "min_educational",
         "max_educational",
     )
-    search_fields = ("name", "category_tag")
+    search_fields = ("name",)
     readonly_fields = ("created_at", "updated_at")

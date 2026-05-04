@@ -206,7 +206,7 @@ def feed_rules(request):
         "name": "",
         "start_time": "",
         "end_time": "",
-        "category_tag": "",
+        "category_tags_input": "",
         "min_energy": "",
         "max_energy": "",
         "min_educational": "",
@@ -230,7 +230,7 @@ def feed_rules(request):
         name = request.POST.get("name", "").strip()
         start_time = request.POST.get("start_time", "").strip()
         end_time = request.POST.get("end_time", "").strip()
-        category_tag = request.POST.get("category_tag", "").strip()
+        category_tags_input = request.POST.get("category_tags", "").strip()
 
         min_energy = _parse_rating(request.POST.get("min_energy", ""))
         max_energy = _parse_rating(request.POST.get("max_energy", ""))
@@ -244,7 +244,7 @@ def feed_rules(request):
                 "name": name,
                 "start_time": start_time,
                 "end_time": end_time,
-                "category_tag": category_tag,
+                "category_tags_input": category_tags_input,
                 "min_energy": request.POST.get("min_energy", "").strip(),
                 "max_energy": request.POST.get("max_energy", "").strip(),
                 "min_educational": request.POST.get("min_educational", "").strip(),
@@ -271,12 +271,18 @@ def feed_rules(request):
             context["error_message"] = "Educational range is invalid: min cannot be greater than max."
             return render(request, "feed/feed_rules.html", context=context)
 
+        category_tags = [
+            tag.strip()
+            for tag in category_tags_input.split(",")
+            if tag.strip()
+        ]
+
         try:
             FeedRule.objects.create(
                 name=name,
                 start_time=start_time,
                 end_time=end_time,
-                category_tag=category_tag,
+                category_tags=category_tags,
                 monday="monday" in selected_days,
                 tuesday="tuesday" in selected_days,
                 wednesday="wednesday" in selected_days,
@@ -294,7 +300,7 @@ def feed_rules(request):
                 "name": "",
                 "start_time": "",
                 "end_time": "",
-                "category_tag": "",
+                "category_tags_input": "",
                 "min_energy": "",
                 "max_energy": "",
                 "min_educational": "",
