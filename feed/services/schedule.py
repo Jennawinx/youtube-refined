@@ -16,7 +16,7 @@ This ensures every time slot has all applicable rules represented, with overlaps
 showing the intersection of constraints.
 """
 
-from datetime import time, timedelta
+from datetime import time
 from typing import Optional
 
 from feed.models import FeedRule
@@ -141,50 +141,108 @@ class TimeRange:
         return result
 
 
+def _merge_active_ranges(
+    active_ranges: list[TimeRange],
+    start_hour: int,
+    end_hour: int,
+) -> TimeRange:
+    """Merge metadata for a time segment covered by one or more active ranges."""
+    if len(active_ranges) == 1:
+        src = active_ranges[0]
+        return TimeRange(
+            start_hour=start_hour,
+            end_hour=end_hour,
+            rule_name=src.rule_name,
+            category_tags=list(src.category_tags),
+            min_energy=src.min_energy,
+            max_energy=src.max_energy,
+            min_educational=src.min_educational,
+            max_educational=src.max_educational,
+        )
+
+    rule_names: list[str] = []
+    category_tags: list[str] = []
+    for r in active_ranges:
+        if r.rule_name not in rule_names:
+            rule_names.append(r.rule_name)
+        for tag in r.category_tags:
+            if tag not in category_tags:
+                category_tags.append(tag)
+
+    min_energies = [r.min_energy for r in active_ranges if r.min_energy is not None]
+    max_energies = [r.max_energy for r in active_ranges if r.max_energy is not None]
+    min_educationals = [
+        r.min_educational for r in active_ranges if r.min_educational is not None
+    ]
+    max_educationals = [
+        r.max_educational for r in active_ranges if r.max_educational is not None
+    ]
+
+    # Overlap segment should keep the intersection of ranges.
+    min_energy = max(min_energies) if min_energies else None
+    max_energy = min(max_energies) if max_energies else None
+    min_educational = max(min_educationals) if min_educationals else None
+    max_educational = min(max_educationals) if max_educationals else None
+
+    if (
+        min_energy is not None
+        and max_energy is not None
+        and min_energy > max_energy
+    ):
+        min_energy = None
+        max_energy = None
+    if (
+        min_educational is not None
+        and max_educational is not None
+        and min_educational > max_educational
+    ):
+        min_educational = None
+        max_educational = None
+
+    return TimeRange(
+        start_hour=start_hour,
+        end_hour=end_hour,
+        rule_name=" & ".join(rule_names),
+        category_tags=category_tags,
+        min_energy=min_energy,
+        max_energy=max_energy,
+        min_educational=min_educational,
+        max_educational=max_educational,
+    )
+
+
 def resolve_overlaps(ranges: list[TimeRange]) -> list[TimeRange]:
     """
-    Resolve overlapping time ranges using the split algorithm.
+    Resolve overlapping ranges by splitting across unique boundaries.
 
-    Takes a list of potentially overlapping TimeRange objects and returns a
-    non-overlapping list where overlaps are split according to the algorithm.
+    This guarantees X/Y/Z style segments are emitted:
+    - X = A - B
+    - Y = A ∩ B
+    - Z = B - A
     """
     if not ranges:
         return []
 
-    if len(ranges) == 1:
-        return ranges
+    boundaries = sorted({p for r in ranges for p in (r.start_hour, r.end_hour)})
+    resolved: list[TimeRange] = []
 
-    # Sort by start time
-    sorted_ranges = sorted(ranges, key=lambda r: r.start_hour)
+    for idx in range(len(boundaries) - 1):
+        start_hour = boundaries[idx]
+        end_hour = boundaries[idx + 1]
+        if start_hour == end_hour:
+            continue
 
-    result = []
-    current = sorted_ranges[0]
+        active_ranges = [
+            r
+            for r in ranges
+            if r.start_hour < end_hour and start_hour < r.end_hour
+        ]
+        if not active_ranges:
+            continue
 
-    for next_range in sorted_ranges[1:]:
-        if not current.overlaps_with(next_range):
-            result.append(current)
-            current = next_range
-        else:
-            # Resolve overlap: split into X (current only), Y (both), Z (next only)
-            differences_current = current.difference(next_range)
-            intersection = current.intersection(next_range)
-            differences_next = next_range.difference(current)
+        resolved.append(_merge_active_ranges(active_ranges, start_hour, end_hour))
 
-            result.extend(differences_current)
-            if intersection:
-                result.append(intersection)
-
-            # Continue with remaining portions of next_range
-            if differences_next:
-                # Recursively resolve if there are more ranges
-                current = next_range
-            else:
-                # next_range is completely consumed
-                if sorted_ranges.index(next_range) + 1 < len(sorted_ranges):
-                    current = sorted_ranges[sorted_ranges.index(next_range) + 1]
-
-    result.append(current)
-    return sorted(result, key=lambda r: r.start_hour)
+    return resolved
 
 
 def compute_weekly_schedule(rules: list[FeedRule]) -> dict[str, list[TimeRange]]:

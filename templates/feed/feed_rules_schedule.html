@@ -46,9 +46,9 @@
                           {% endif %}
                         </div>
                       {% endif %}
-                      {% comment %} <div class="text-xs text-on-surface-variant truncate">
+                      <div class="text-xs text-on-surface-variant truncate">
                         {{ block.start_hour|stringformat:"02d" }}:00 - {{ block.end_hour|stringformat:"02d" }}:00
-                      </div> {% endcomment %}
+                      </div>
                       {% if block.category_tags %}
                         <div class="mt-1 flex flex-wrap gap-1">
                           {% for tag in block.category_tags %}
