@@ -21,6 +21,15 @@ class VideoAdmin(admin.ModelAdmin):
 
 @admin.register(FeedRule)
 class FeedRuleAdmin(admin.ModelAdmin):
-    list_display = ("name", "category_tag", "start_time", "end_time")
+    list_display = (
+        "name",
+        "category_tag",
+        "start_time",
+        "end_time",
+        "min_energy",
+        "max_energy",
+        "min_educational",
+        "max_educational",
+    )
     search_fields = ("name", "category_tag")
     readonly_fields = ("created_at", "updated_at")

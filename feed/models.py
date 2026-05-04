@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -57,7 +58,27 @@ class FeedRule(models.Model):
     sunday = models.BooleanField(default=False)
     start_time = models.TimeField()
     end_time = models.TimeField()
-    category_tag = models.CharField(max_length=255)
+    category_tag = models.CharField(max_length=255, null=True, blank=False)
+    min_energy = models.PositiveSmallIntegerField(
+        null=True,
+        blank=False,
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+    )
+    max_energy = models.PositiveSmallIntegerField(
+        null=True,
+        blank=False,
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+    )
+    min_educational = models.PositiveSmallIntegerField(
+        null=True,
+        blank=False,
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+    )
+    max_educational = models.PositiveSmallIntegerField(
+        null=True,
+        blank=False,
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
