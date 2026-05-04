@@ -1,47 +1,87 @@
 {% with group_name=name|default:'rating' max_value=max|default:5 %}
-<div class="flex flex-row-reverse flex-wrap items-center gap-1" data-rate-group="{{ group_name }}">
+<div class="flex items-center gap-1" data-rate-range="{{ group_name }}">
+    <input type="hidden" id="{{ group_name }}-min-input" name="{{ group_name }}_min" value="{{ selected_min|default:'' }}" />
+    <input type="hidden" id="{{ group_name }}-max-input" name="{{ group_name }}_max" value="{{ selected_max|default:'' }}" />
     {% with ''|center:max_value as rating_range %}
         {% for _ in rating_range %}
-            {% with option_value=forloop.revcounter %}
-                <input
-                    id="{{ group_name }}-{{ option_value }}"
-                    type="radio"
-                    name="{{ group_name }}"
-                    value="{{ option_value }}"
-                    class="peer sr-only"
-                    {% if selected == option_value %}checked{% endif %}
-                    {% if required and forloop.first %}required{% endif %}
-                />
-                <label
-                    for="{{ group_name }}-{{ option_value }}"
-                    class="inline-flex h-5 w-5 cursor-pointer select-none items-center justify-center rounded-full border border-outline-variant/60 bg-transparent text-[10px] font-semibold text-on-surface-variant/50 transition-colors peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-primary"
-                >
-                    {{ option_value }}
-                </label>
+            {% with option_value=forloop.counter %}
+                <button
+                    type="button"
+                    data-value="{{ option_value }}"
+                    class="inline-flex h-5 w-5 cursor-pointer select-none items-center justify-center rounded-full border border-outline-variant/60 bg-transparent text-[10px] font-semibold text-on-surface-variant/50 transition-colors"
+                >{{ option_value }}</button>
             {% endwith %}
         {% endfor %}
     {% endwith %}
 </div>
 <script>
-    (function () {
-        if (window.__rateToggleInit) return;
-        window.__rateToggleInit = true;
+(function () {
+    var CLS_DEFAULT = "inline-flex h-5 w-5 cursor-pointer select-none items-center justify-center rounded-full border border-outline-variant/60 bg-transparent text-[10px] font-semibold text-on-surface-variant/50 transition-colors";
+    var CLS_BETWEEN = "inline-flex h-5 w-5 cursor-pointer select-none items-center justify-center rounded-full border border-primary/50 bg-primary/20 text-primary text-[10px] font-semibold transition-colors";
+    var CLS_ENDPOINT = "inline-flex h-5 w-5 cursor-pointer select-none items-center justify-center rounded-full border border-primary bg-primary text-on-primary text-[10px] font-semibold transition-colors";
 
-        document.addEventListener("click", function (event) {
-            const label = event.target.closest("label[for]");
-            if (!label) return;
+    function initRateRange(container) {
+        if (container.dataset.rateRangeInit) return;
+        container.dataset.rateRangeInit = "true";
 
-            const group = label.closest("[data-rate-group]");
-            if (!group) return;
+        var groupName = container.dataset.rateRange;
+        var minInput = document.getElementById(groupName + "-min-input");
+        var maxInput = document.getElementById(groupName + "-max-input");
+        var buttons = Array.from(container.querySelectorAll("button[data-value]"));
 
-            const inputId = label.getAttribute("for");
-            const input = document.getElementById(inputId);
-            if (!input || input.type !== "radio" || !input.checked || input.required) return;
+        var minVal = minInput.value !== "" ? parseInt(minInput.value, 10) : null;
+        var maxVal = maxInput.value !== "" ? parseInt(maxInput.value, 10) : null;
 
-            event.preventDefault();
-            input.checked = false;
-            input.dispatchEvent(new Event("change", { bubbles: true }));
+        function updateVisuals() {
+            buttons.forEach(function (btn) {
+                var v = parseInt(btn.dataset.value, 10);
+                var isEndpoint = v === minVal || v === maxVal;
+                var isBetween = minVal !== null && maxVal !== null && v > minVal && v < maxVal;
+                if (isEndpoint) {
+                    btn.className = CLS_ENDPOINT;
+                } else if (isBetween) {
+                    btn.className = CLS_BETWEEN;
+                } else {
+                    btn.className = CLS_DEFAULT;
+                }
+            });
+        }
+
+        container.addEventListener("click", function (e) {
+            var btn = e.target.closest("button[data-value]");
+            if (!btn) return;
+            var v = parseInt(btn.dataset.value, 10);
+
+            if (minVal === null) {
+                // Nothing selected — set anchor
+                minVal = v;
+                maxVal = null;
+            } else if (maxVal === null) {
+                if (v === minVal) {
+                    // Tap same value — deselect
+                    minVal = null;
+                } else {
+                    // Extend to a range
+                    var lo = Math.min(v, minVal);
+                    var hi = Math.max(v, minVal);
+                    minVal = lo;
+                    maxVal = hi;
+                }
+            } else {
+                // Range already set — reset to new anchor
+                minVal = v;
+                maxVal = null;
+            }
+
+            minInput.value = minVal !== null ? minVal : "";
+            maxInput.value = maxVal !== null ? maxVal : "";
+            updateVisuals();
         });
-    })();
+
+        updateVisuals();
+    }
+
+    document.querySelectorAll("[data-rate-range]").forEach(initRateRange);
+})();
 </script>
 {% endwith %}

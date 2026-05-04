@@ -2,5 +2,5 @@
 {% include "feed/video_card.html" %}
 {% endfor %}
 {% if has_more %}
-{% include "feed/home_pager.html" with next_offset=next_offset %}
+{% include "feed/home_pager.html" with next_offset=next_offset energy_min=energy_min energy_max=energy_max educational_min=educational_min educational_max=educational_max %}
 {% endif %}

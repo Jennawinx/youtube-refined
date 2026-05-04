@@ -21,17 +21,29 @@
           {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
         </div>
       </div>
-      <form method="get" class="w-full flex items-center gap-2">
-        <input
-          type="search"
-          name="q"
-          value="{{ search_query }}"
-          placeholder="Search videos by title, channel, or description"
-          class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary"
-        />
-        {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
+      <form method="get" class="w-full flex flex-col gap-3">
+        <div class="flex items-center gap-2">
+          <input
+            type="search"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search videos by title, channel, or description"
+            class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary"
+          />
+          {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
+        </div>
+        <div class="flex flex-wrap items-center gap-6 justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-on-surface-variant whitespace-nowrap">Mental energy</span>
+            {% include 'components/rate.html' with name='energy' selected_min=energy_min selected_max=energy_max max=10 %}
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-on-surface-variant whitespace-nowrap">Educational value</span>
+            {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
+          </div>
+        </div>
       </form>
-      {% include "components/rate.html" with name="energy" max=10 selected=video.energy %}
+
     </header>
 
     <!-- Video Grid -->

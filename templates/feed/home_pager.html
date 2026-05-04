@@ -1,7 +1,7 @@
 <div
     id="video-pager-{{ next_offset }}"
     class="col-span-1 sm:col-span-2 lg:col-span-3 h-10 flex items-center justify-center text-sm text-on-surface-variant/50"
-    hx-get="{% url 'home_more_html' %}?offset={{ next_offset }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
+    hx-get="{% url 'home_more_html' %}?offset={{ next_offset }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if energy_min %}&energy_min={{ energy_min }}{% endif %}{% if energy_max %}&energy_max={{ energy_max }}{% endif %}{% if educational_min %}&educational_min={{ educational_min }}{% endif %}{% if educational_max %}&educational_max={{ educational_max }}{% endif %}"
     hx-trigger="revealed"
     hx-swap="outerHTML"
 >

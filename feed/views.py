@@ -1,5 +1,7 @@
 import logging
 
+from typing import Optional
+
 from django.db.models import Q
 from django.shortcuts import redirect, render
 
@@ -14,13 +16,37 @@ PAGE_SIZE = 20
 logger = logging.getLogger(__name__)
 
 
-def get_video_page(offset: int, search_query: str = "") -> tuple[list[Video], bool, int]:
+def _parse_rating(value: str) -> Optional[int]:
+    """Parse a 1-10 rating GET param; returns None if missing/invalid."""
+    try:
+        v = int(value)
+        return v if 1 <= v <= 10 else None
+    except (ValueError, TypeError):
+        return None
+
+
+def get_video_page(
+    offset: int,
+    search_query: str = "",
+    energy_min: Optional[int] = None,
+    energy_max: Optional[int] = None,
+    educational_min: Optional[int] = None,
+    educational_max: Optional[int] = None,
+) -> tuple[list[Video], bool, int]:
     video_qs = Video.objects.select_related("channel")
     if search_query:
         video_qs = video_qs.filter(
             Q(title__icontains=search_query)
             | Q(channel__name__icontains=search_query)
         )
+    if energy_min is not None:
+        video_qs = video_qs.filter(energy__gte=energy_min)
+    if energy_max is not None:
+        video_qs = video_qs.filter(energy__lte=energy_max)
+    if educational_min is not None:
+        video_qs = video_qs.filter(educational__gte=educational_min)
+    if educational_max is not None:
+        video_qs = video_qs.filter(educational__lte=educational_max)
 
     videos_window = list(
         video_qs.order_by("-publish_date")[offset : offset + PAGE_SIZE + 1]
@@ -33,12 +59,27 @@ def get_video_page(offset: int, search_query: str = "") -> tuple[list[Video], bo
 
 def home(request):
     search_query = request.GET.get("q", "").strip()
-    videos, has_more, next_offset = get_video_page(offset=0, search_query=search_query)
+    energy_min = _parse_rating(request.GET.get("energy_min", ""))
+    energy_max = _parse_rating(request.GET.get("energy_max", ""))
+    educational_min = _parse_rating(request.GET.get("educational_min", ""))
+    educational_max = _parse_rating(request.GET.get("educational_max", ""))
+    videos, has_more, next_offset = get_video_page(
+        offset=0,
+        search_query=search_query,
+        energy_min=energy_min,
+        energy_max=energy_max,
+        educational_min=educational_min,
+        educational_max=educational_max,
+    )
     context = {
         "videos": videos,
         "has_more": has_more,
         "next_offset": next_offset,
         "search_query": search_query,
+        "energy_min": energy_min,
+        "energy_max": energy_max,
+        "educational_min": educational_min,
+        "educational_max": educational_max,
     }
 
     if request.method == "POST":
@@ -66,8 +107,19 @@ def home_more_html(request):
         offset = 0
 
     search_query = request.GET.get("q", "").strip()
+    energy_min = _parse_rating(request.GET.get("energy_min", ""))
+    energy_max = _parse_rating(request.GET.get("energy_max", ""))
+    educational_min = _parse_rating(request.GET.get("educational_min", ""))
+    educational_max = _parse_rating(request.GET.get("educational_max", ""))
 
-    videos, has_more, next_offset = get_video_page(offset=offset, search_query=search_query)
+    videos, has_more, next_offset = get_video_page(
+        offset=offset,
+        search_query=search_query,
+        energy_min=energy_min,
+        energy_max=energy_max,
+        educational_min=educational_min,
+        educational_max=educational_max,
+    )
     return render(
         request,
         "feed/home_more.html",
@@ -76,6 +128,10 @@ def home_more_html(request):
             "has_more": has_more,
             "next_offset": next_offset,
             "search_query": search_query,
+            "energy_min": energy_min,
+            "energy_max": energy_max,
+            "educational_min": educational_min,
+            "educational_max": educational_max,
         },
     )
 
