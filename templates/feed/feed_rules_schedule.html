@@ -1,0 +1,67 @@
+{% load static %}
+{% load filters %}
+
+{# Weekly schedule visualization showing hourly time blocks for all feed rules #}
+<div class="mt-8 rounded-lg border border-outline-variant overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="bg-surface-container-low border-b border-outline-variant">
+        <th class="p-2 text-left font-medium text-on-surface w-12">Hour</th>
+        {% for day in days %}
+          <th class="p-2 text-left font-medium text-on-surface w-24">
+            {{ day|title }}
+          </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for hour in hours %}
+        <tr class="border-b border-outline-variant hover:bg-surface-container-low">
+          <td class="p-2 font-medium text-on-surface-variant">
+            {{ hour|stringformat:"02d" }}:00
+          </td>
+
+          {% for day in days %}
+            {% with blocks=schedule|get_item:day %}
+              <td class="p-2 h-24 align-top">
+                {% for block in blocks %}
+                  {% if block.start_hour == hour %}
+                    {# Calculate block height based on duration #}
+                    {% widthratio block.end_hour block.start_hour 1 as duration %}
+                    <div
+                      class="rounded border border-primary bg-primary bg-opacity-10 p-1 mb-1 cursor-pointer hover:bg-opacity-20 transition-colors"
+                      title="{{ block.rule_name }}
+{{ block.time_str }}
+Energy: {{ block.min_energy }}-{{ block.max_energy }}
+Educational: {{ block.min_educational }}-{{ block.max_educational }}
+Tags: {{ block.category_tags|join:', ' }}"
+                    >
+                      <div class="text-xs font-medium text-primary truncate">
+                        {{ block.rule_name }}
+                      </div>
+                      <div class="text-xs text-on-surface-variant truncate">
+                        {{ block.start_hour|stringformat:"02d" }}:00 - {{ block.end_hour|stringformat:"02d" }}:00
+                      </div>
+                      {% if block.category_tags %}
+                        <div class="text-xs text-secondary mt-0.5 truncate">
+                          {{ block.category_tags|join:', ' }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </td>
+            {% endwith %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  {# Style for schedule table cells #}
+  td {
+    vertical-align: top;
+  }
+</style>

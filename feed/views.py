@@ -10,6 +10,7 @@ from feed.models import Channel, FeedRule, Video
 from feed.services.rss import RssRefreshError, fetch_channel_feed, refresh_channel, refresh_channel_with_feed
 from feed.services.openai import categorize_videos, topics
 from feed.services.rss_parsing import parse_xml_feed
+from feed.services.schedule import compute_weekly_schedule
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 PAGE_SIZE = 20
@@ -278,9 +279,15 @@ def _parse_rule_form_payload(data: dict) -> tuple[dict, Optional[str]]:
 
 
 def feed_rules(request):
+    rules = FeedRule.objects.order_by("start_time", "name")
+    schedule = compute_weekly_schedule(list(rules))
+    
     context = {
-        "rules": FeedRule.objects.order_by("start_time", "name"),
+        "rules": rules,
         "success_message": request.GET.get("success", "").strip(),
+        "schedule": schedule,
+        "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+        "hours": list(range(24)),
     }
     return render(request, "feed/feed_rules.html", context=context)
 

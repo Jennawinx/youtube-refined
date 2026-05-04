@@ -57,5 +57,10 @@
         <p class="text-sm text-on-surface-variant">No feed rules yet.</p>
       {% endif %}
     </section>
+
+    <section class="rounded-xl border border-outline-variant/50 bg-surface p-6 shadow-sm">
+      <h2 class="text-lg font-bold mb-4">Weekly Schedule</h2>
+      {% include 'feed/feed_rules_schedule.html' %}
+    </section>
   </main>
 {% endblock %}
