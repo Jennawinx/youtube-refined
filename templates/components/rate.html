@@ -1,5 +1,5 @@
 {% with group_name=name|default:'rating' max_value=max|default:5 %}
-<div class="flex flex-row-reverse flex-wrap items-center gap-1">
+<div class="flex flex-row-reverse flex-wrap items-center gap-1" data-rate-group="{{ group_name }}">
     {% with ''|center:max_value as rating_range %}
         {% for _ in rating_range %}
             {% with option_value=forloop.revcounter %}
@@ -22,4 +22,26 @@
         {% endfor %}
     {% endwith %}
 </div>
+<script>
+    (function () {
+        if (window.__rateToggleInit) return;
+        window.__rateToggleInit = true;
+
+        document.addEventListener("click", function (event) {
+            const label = event.target.closest("label[for]");
+            if (!label) return;
+
+            const group = label.closest("[data-rate-group]");
+            if (!group) return;
+
+            const inputId = label.getAttribute("for");
+            const input = document.getElementById(inputId);
+            if (!input || input.type !== "radio" || !input.checked || input.required) return;
+
+            event.preventDefault();
+            input.checked = false;
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+    })();
+</script>
 {% endwith %}
