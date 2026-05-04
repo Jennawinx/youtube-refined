@@ -5,7 +5,7 @@ from typing import Optional
 from django.db.models import Q
 from django.shortcuts import redirect, render
 
-from feed.models import Channel, Video
+from feed.models import Channel, FeedRule, Video
 from feed.services.rss import RssRefreshError, fetch_channel_feed, refresh_channel, refresh_channel_with_feed
 from feed.services.openai import categorize_videos
 from feed.services.rss_parsing import parse_xml_feed
@@ -197,3 +197,113 @@ def subscriptions_create(request):
                 context["create_error"] = "Unexpected error while creating subscription."
 
     return render(request, "feed/subscriptions_create.html", context=context)
+
+
+def feed_rules(request):
+    rules = FeedRule.objects.order_by("start_time", "name")
+    context = {
+        "rules": rules,
+        "name": "",
+        "start_time": "",
+        "end_time": "",
+        "category_tag": "",
+        "min_energy": "",
+        "max_energy": "",
+        "min_educational": "",
+        "max_educational": "",
+        "selected_days": [],
+    }
+
+    if request.method == "POST":
+        action = request.POST.get("action", "create").strip()
+
+        if action == "delete":
+            rule_id = request.POST.get("rule_id", "").strip()
+            deleted_count, _ = FeedRule.objects.filter(id=rule_id).delete()
+            if deleted_count:
+                context["success_message"] = "Feed rule removed."
+                context["rules"] = FeedRule.objects.order_by("start_time", "name")
+            else:
+                context["error_message"] = "Feed rule was not found."
+            return render(request, "feed/feed_rules.html", context=context)
+
+        name = request.POST.get("name", "").strip()
+        start_time = request.POST.get("start_time", "").strip()
+        end_time = request.POST.get("end_time", "").strip()
+        category_tag = request.POST.get("category_tag", "").strip()
+
+        min_energy = _parse_rating(request.POST.get("min_energy", ""))
+        max_energy = _parse_rating(request.POST.get("max_energy", ""))
+        min_educational = _parse_rating(request.POST.get("min_educational", ""))
+        max_educational = _parse_rating(request.POST.get("max_educational", ""))
+
+        selected_days = request.POST.getlist("days")
+
+        context.update(
+            {
+                "name": name,
+                "start_time": start_time,
+                "end_time": end_time,
+                "category_tag": category_tag,
+                "min_energy": request.POST.get("min_energy", "").strip(),
+                "max_energy": request.POST.get("max_energy", "").strip(),
+                "min_educational": request.POST.get("min_educational", "").strip(),
+                "max_educational": request.POST.get("max_educational", "").strip(),
+                "selected_days": selected_days,
+            }
+        )
+
+        if not name:
+            context["error_message"] = "Rule name is required."
+            return render(request, "feed/feed_rules.html", context=context)
+        if not start_time or not end_time:
+            context["error_message"] = "Start and end time are required."
+            return render(request, "feed/feed_rules.html", context=context)
+
+        if min_energy is not None and max_energy is not None and min_energy > max_energy:
+            context["error_message"] = "Energy range is invalid: min cannot be greater than max."
+            return render(request, "feed/feed_rules.html", context=context)
+        if (
+            min_educational is not None
+            and max_educational is not None
+            and min_educational > max_educational
+        ):
+            context["error_message"] = "Educational range is invalid: min cannot be greater than max."
+            return render(request, "feed/feed_rules.html", context=context)
+
+        try:
+            FeedRule.objects.create(
+                name=name,
+                start_time=start_time,
+                end_time=end_time,
+                category_tag=category_tag,
+                monday="monday" in selected_days,
+                tuesday="tuesday" in selected_days,
+                wednesday="wednesday" in selected_days,
+                thursday="thursday" in selected_days,
+                friday="friday" in selected_days,
+                saturday="saturday" in selected_days,
+                sunday="sunday" in selected_days,
+                min_energy=min_energy,
+                max_energy=max_energy,
+                min_educational=min_educational,
+                max_educational=max_educational,
+            )
+            context = {
+                "rules": FeedRule.objects.order_by("start_time", "name"),
+                "name": "",
+                "start_time": "",
+                "end_time": "",
+                "category_tag": "",
+                "min_energy": "",
+                "max_energy": "",
+                "min_educational": "",
+                "max_educational": "",
+                "selected_days": [],
+                "success_message": "Feed rule added.",
+            }
+        except Exception:
+            logger.exception("Create feed rule request failed")
+            context["error_message"] = "Unable to create feed rule."
+
+    return render(request, "feed/feed_rules.html", context=context)

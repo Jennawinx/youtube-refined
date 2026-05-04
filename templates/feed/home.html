@@ -17,6 +17,8 @@
             {% csrf_token %}
             {% include 'components/button.html' with label='Test Categorize Video' name='test_categorize' value='true' color='secondary' %}
           </form>
+          {% url 'feed_rules' as feed_rules_url %}
+          {% include 'components/button.html' with href=feed_rules_url label='Feed Rules' color='secondary' %}
           {% url 'subscriptions' as subscriptions_url %}
           {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
         </div>
