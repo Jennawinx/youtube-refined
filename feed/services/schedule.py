@@ -44,6 +44,7 @@ class TimeRange:
         self.max_energy = max_energy
         self.min_educational = min_educational
         self.max_educational = max_educational
+        self.hours = end_hour - start_hour  # Duration in hours
 
     def time_str(self) -> str:
         """Return human-readable time range like '9:00 AM - 10:00 AM'."""
