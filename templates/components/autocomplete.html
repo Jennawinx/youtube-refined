@@ -7,17 +7,17 @@
         data-autocomplete-output
     />
 
-    <div class="min-h-11 rounded-lg border border-outline-variant/60 bg-surface-container-low px-2 py-2 flex flex-wrap items-center gap-2" data-autocomplete-tags></div>
+    <div class="min-h-11 rounded-lg border border-outline-variant/60 {{ tags_bg_class|default:'bg-surface-container-low' }} px-2 py-2 flex flex-wrap items-center gap-2" data-autocomplete-tags></div>
 
     <input
         type="text"
         value=""
-        placeholder="{{ placeholder|default:'Type to add items' }}"
-        class="w-full rounded-lg border border-outline-variant/60 bg-surface px-3 py-2 text-sm text-on-surface outline-none focus:border-primary"
+        placeholder="{{ placeholder|default:'Type and press Enter, comma, or choose from suggestions' }}"
+        class="w-full rounded-lg border border-outline-variant/60 {{ input_bg_class|default:'bg-surface' }} px-3 py-2 text-sm text-on-surface outline-none focus:border-primary"
         data-autocomplete-input
     />
 
-    <div class="hidden rounded-lg border border-outline-variant/60 bg-surface shadow-sm p-2 max-h-40 overflow-auto" data-autocomplete-suggestions>
+    <div class="hidden rounded-lg border border-outline-variant/60 {{ suggestions_bg_class|default:'bg-surface' }} shadow-sm p-2 max-h-40 overflow-auto" data-autocomplete-suggestions>
         {% for option in values %}
             <button
                 type="button"

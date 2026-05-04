@@ -21,6 +21,7 @@ topics = [
     "Day in the life",
     "Decor",
     "DIY",
+    "Economics",
     "Economy",
     "Educational",
     "Finance and Investing",
