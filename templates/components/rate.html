@@ -32,6 +32,17 @@
         var minVal = minInput.value !== "" ? parseInt(minInput.value, 10) : null;
         var maxVal = maxInput.value !== "" ? parseInt(maxInput.value, 10) : null;
 
+        // Normalize persisted values into either a single point (min=max) or a valid range.
+        if (minVal !== null && maxVal === null) {
+            maxVal = minVal;
+        } else if (maxVal !== null && minVal === null) {
+            minVal = maxVal;
+        } else if (minVal !== null && maxVal !== null && minVal > maxVal) {
+            var temp = minVal;
+            minVal = maxVal;
+            maxVal = temp;
+        }
+
         function updateVisuals() {
             buttons.forEach(function (btn) {
                 var v = parseInt(btn.dataset.value, 10);
@@ -52,25 +63,26 @@
             if (!btn) return;
             var v = parseInt(btn.dataset.value, 10);
 
-            if (minVal === null) {
-                // Nothing selected — set anchor
+            if (minVal === null && maxVal === null) {
+                // Nothing selected: start with a single-point range.
                 minVal = v;
-                maxVal = null;
-            } else if (maxVal === null) {
+                maxVal = v;
+            } else if (minVal === maxVal) {
                 if (v === minVal) {
-                    // Tap same value — deselect
+                    // Tap the same single-point value: clear selection.
                     minVal = null;
+                    maxVal = null;
                 } else {
-                    // Extend to a range
+                    // Expand from a point into a true range.
                     var lo = Math.min(v, minVal);
                     var hi = Math.max(v, minVal);
                     minVal = lo;
                     maxVal = hi;
                 }
             } else {
-                // Range already set — reset to new anchor
+                // Range already set: reset to a single-point range at clicked value.
                 minVal = v;
-                maxVal = null;
+                maxVal = v;
             }
 
             minInput.value = minVal !== null ? minVal : "";
