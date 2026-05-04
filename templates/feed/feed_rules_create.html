@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Create Feed Rule
+{% endblock %}
+
+{% block content %}
+  <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-8">
+    <header class="flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <a href="{% url 'feed_rules' %}" class="text-sm font-semibold text-primary hover:underline">Back to Rules</a>
+        <h1 class="text-3xl font-extrabold tracking-tight">Create Feed Rule</h1>
+        <p class="text-sm text-on-surface-variant mt-1">Define a new schedule and filtering rule.</p>
+      </div>
+    </header>
+
+    {% include 'components/banner_error.html' with message=error_message %}
+
+    <section class="rounded-xl border border-outline-variant/50 bg-surface p-6 shadow-sm">
+      <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% csrf_token %}
+        {% include 'feed/feed_rules_form.html' %}
+        <div class="md:col-span-2">
+          {% include 'components/button.html' with label=submit_label %}
+        </div>
+      </form>
+    </section>
+  </main>
+{% endblock %}

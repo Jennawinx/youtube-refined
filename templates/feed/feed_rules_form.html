@@ -1,0 +1,112 @@
+<label class="flex flex-col gap-1 md:col-span-2">
+  <span class="text-sm text-on-surface-variant">Rule name</span>
+  <input
+    type="text"
+    name="name"
+    value="{{ name }}"
+    required
+    class="rounded-lg border border-outline-variant/60 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+  />
+</label>
+
+<label class="flex flex-col gap-1">
+  <span class="text-sm text-on-surface-variant">Start time</span>
+  <input
+    type="time"
+    name="start_time"
+    value="{{ start_time }}"
+    required
+    class="rounded-lg border border-outline-variant/60 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+  />
+</label>
+
+<label class="flex flex-col gap-1">
+  <span class="text-sm text-on-surface-variant">End time</span>
+  <input
+    type="time"
+    name="end_time"
+    value="{{ end_time }}"
+    required
+    class="rounded-lg border border-outline-variant/60 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+  />
+</label>
+
+<div class="flex flex-col gap-1 md:col-span-2">
+  <span class="text-sm text-on-surface-variant">Category tags (comma-separated, optional)</span>
+  {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_input values=available_topics input_bg_class='bg-white' tags_bg_class='bg-white' suggestions_bg_class='bg-white' %}
+</div>
+
+<label class="flex flex-col gap-1">
+  <span class="text-sm text-on-surface-variant">Min energy (1-10)</span>
+  <input
+    type="number"
+    min="1"
+    max="10"
+    name="min_energy"
+    value="{{ min_energy }}"
+    class="rounded-lg border border-outline-variant/60 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+  />
+</label>
+
+<label class="flex flex-col gap-1">
+  <span class="text-sm text-on-surface-variant">Max energy (1-10)</span>
+  <input
+    type="number"
+    min="1"
+    max="10"
+    name="max_energy"
+    value="{{ max_energy }}"
+    class="rounded-lg border border-outline-variant/60 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+  />
+</label>
+
+<label class="flex flex-col gap-1">
+  <span class="text-sm text-on-surface-variant">Min educational (1-10)</span>
+  <input
+    type="number"
+    min="1"
+    max="10"
+    name="min_educational"
+    value="{{ min_educational }}"
+    class="rounded-lg border border-outline-variant/60 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+  />
+</label>
+
+<label class="flex flex-col gap-1">
+  <span class="text-sm text-on-surface-variant">Max educational (1-10)</span>
+  <input
+    type="number"
+    min="1"
+    max="10"
+    name="max_educational"
+    value="{{ max_educational }}"
+    class="rounded-lg border border-outline-variant/60 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+  />
+</label>
+
+<fieldset class="md:col-span-2">
+  <legend class="text-sm text-on-surface-variant mb-2">Days</legend>
+  <div class="flex flex-wrap gap-3">
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" name="days" value="monday" {% if 'monday' in selected_days %}checked{% endif %} /> Monday
+    </label>
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" name="days" value="tuesday" {% if 'tuesday' in selected_days %}checked{% endif %} /> Tuesday
+    </label>
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" name="days" value="wednesday" {% if 'wednesday' in selected_days %}checked{% endif %} /> Wednesday
+    </label>
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" name="days" value="thursday" {% if 'thursday' in selected_days %}checked{% endif %} /> Thursday
+    </label>
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" name="days" value="friday" {% if 'friday' in selected_days %}checked{% endif %} /> Friday
+    </label>
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" name="days" value="saturday" {% if 'saturday' in selected_days %}checked{% endif %} /> Saturday
+    </label>
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" name="days" value="sunday" {% if 'sunday' in selected_days %}checked{% endif %} /> Sunday
+    </label>
+  </div>
+</fieldset>
