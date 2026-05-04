@@ -7,7 +7,7 @@ from django.shortcuts import redirect, render
 
 from feed.models import Channel, FeedRule, Video
 from feed.services.rss import RssRefreshError, fetch_channel_feed, refresh_channel, refresh_channel_with_feed
-from feed.services.openai import categorize_videos
+from feed.services.openai import categorize_videos, topics
 from feed.services.rss_parsing import parse_xml_feed
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
@@ -203,6 +203,7 @@ def feed_rules(request):
     rules = FeedRule.objects.order_by("start_time", "name")
     context = {
         "rules": rules,
+        "available_topics": topics,
         "name": "",
         "start_time": "",
         "end_time": "",
@@ -297,6 +298,7 @@ def feed_rules(request):
             )
             context = {
                 "rules": FeedRule.objects.order_by("start_time", "name"),
+                "available_topics": topics,
                 "name": "",
                 "start_time": "",
                 "end_time": "",

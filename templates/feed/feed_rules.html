@@ -57,16 +57,10 @@
           />
         </label>
 
-        <label class="flex flex-col gap-1 md:col-span-2">
+        <div class="flex flex-col gap-1 md:col-span-2">
           <span class="text-sm text-on-surface-variant">Category tags (comma-separated, optional)</span>
-          <input
-            type="text"
-            name="category_tags"
-            value="{{ category_tags_input }}"
-            placeholder="e.g. Educational, Technology"
-            class="rounded-lg border border-outline-variant/60 bg-surface-container-low px-3 py-2 text-sm outline-none focus:border-primary"
-          />
-        </label>
+          {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_input values=available_topics placeholder='Type and press Enter, comma, or choose from suggestions' %}
+        </div>
 
         <label class="flex flex-col gap-1">
           <span class="text-sm text-on-surface-variant">Min energy (1-10)</span>
