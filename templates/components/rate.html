@@ -1,0 +1,25 @@
+{% with group_name=name|default:'rating' max_value=max|default:5 %}
+<div class="flex flex-row-reverse flex-wrap items-center gap-1">
+    {% with ''|center:max_value as rating_range %}
+        {% for _ in rating_range %}
+            {% with option_value=forloop.revcounter %}
+                <input
+                    id="{{ group_name }}-{{ option_value }}"
+                    type="radio"
+                    name="{{ group_name }}"
+                    value="{{ option_value }}"
+                    class="peer sr-only"
+                    {% if selected == option_value %}checked{% endif %}
+                    {% if required and forloop.first %}required{% endif %}
+                />
+                <label
+                    for="{{ group_name }}-{{ option_value }}"
+                    class="inline-flex h-5 w-5 cursor-pointer select-none items-center justify-center rounded-full border border-outline-variant/60 bg-transparent text-[10px] font-semibold text-on-surface-variant/50 transition-colors peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-primary"
+                >
+                    {{ option_value }}
+                </label>
+            {% endwith %}
+        {% endfor %}
+    {% endwith %}
+</div>
+{% endwith %}

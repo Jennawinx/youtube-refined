@@ -31,6 +31,7 @@
         />
         {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
       </form>
+      {% include "components/rate.html" with name="energy" max=10 selected=video.energy %}
     </header>
 
     <!-- Video Grid -->
