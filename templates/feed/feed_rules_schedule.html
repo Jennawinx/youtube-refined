@@ -3,12 +3,12 @@
 
 {# Weekly schedule visualization showing hourly time blocks for all feed rules #}
 <div class="rounded-lg border border-outline-variant overflow-x-auto">
-  <table class="w-full text-sm">
+  <table class="schedule-table w-full text-sm table-fixed">
     <thead>
-      <tr class="bg-surface-container-low border-b border-outline-variant">
-        <th class="p-2 text-left font-medium text-on-surface w-12">Hour</th>
+      <tr class="w-full bg-surface-container-low border-b border-outline-variant">
+        <th class="p-2 text-left font-medium text-on-surface" style="width: 10%;">Hour</th>
         {% for day in days %}
-          <th class="p-2 text-left font-medium text-on-surface w-24">
+          <th class="p-2 text-left font-medium text-on-surface" style="width: 16%;">
             {{ day|title }}
           </th>
         {% endfor %}
@@ -24,29 +24,38 @@
           {% for day in days %}
             {% with blocks=schedule|get_item:day %}
               {% with block=blocks|get_block_at_hour:hour %}
-                <td class="p-2 h-24 align-top"
+                <td class="p-2 h-16 align-top"
                     {% if block.hours %} 
                         rowspan="{{ block.hours }}"
                     {% endif %}
                 >
                   {% if block %}
                     <div
-                      class="rounded border border-primary bg-primary bg-opacity-10 p-1 mb-1 cursor-pointer hover:bg-opacity-20 transition-colors"
-                      title="{{ block.rule_name }}
-{{ block.time_str }}
-Energy: {{ block.min_energy }}-{{ block.max_energy }}
-Educational: {{ block.min_educational }}-{{ block.max_educational }}
-Tags: {{ block.category_tags|join:', ' }}"
+                      class="rounded border border-primary bg-primary bg-opacity-10 p-1 mb-1 cursor-pointer hover:bg-opacity-20 transition-colors h-full"
                     >
                       <div class="text-xs font-medium text-primary truncate">
                         {{ block.rule_name }}
                       </div>
-                      <div class="text-xs text-on-surface-variant truncate">
+                      {% if block.min_energy or block.max_energy or block.min_educational or block.max_educational %}
+                        <div class="mt-[6px] flex items-center justify-between gap-2 text-[9px] text-on-surface-variant leading-tight">
+                          {% if block.min_energy or block.max_energy %}
+                            <span>⚡ {{ block.min_energy|default:'-' }}-{{ block.max_energy|default:'-' }}</span>
+                          {% endif %}
+                          {% if block.min_educational or block.max_educational %}
+                            <span>🎓 {{ block.min_educational|default:'-' }}-{{ block.max_educational|default:'-' }}</span>
+                          {% endif %}
+                        </div>
+                      {% endif %}
+                      {% comment %} <div class="text-xs text-on-surface-variant truncate">
                         {{ block.start_hour|stringformat:"02d" }}:00 - {{ block.end_hour|stringformat:"02d" }}:00
-                      </div>
+                      </div> {% endcomment %}
                       {% if block.category_tags %}
-                        <div class="text-xs text-secondary mt-0.5 truncate">
-                          {{ block.category_tags|join:', ' }}
+                        <div class="mt-1 flex flex-wrap gap-1">
+                          {% for tag in block.category_tags %}
+                            <span class="h-4 inline-flex items-center rounded-sm bg-white px-1 py-0 text-[8px] font-small text-on-surface">
+                              {{ tag }}
+                            </span>
+                          {% endfor %}
                         </div>
                       {% endif %}
                     </div>
