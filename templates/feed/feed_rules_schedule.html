@@ -2,13 +2,13 @@
 {% load filters %}
 
 {# Weekly schedule visualization showing hourly time blocks for all feed rules #}
-<div class="rounded-lg border border-outline-variant overflow-x-auto">
+<div id="feed-rules-schedule" class="rounded-lg border border-outline-variant overflow-x-auto overflow-y-auto max-h-[70vh]">
   <table class="schedule-table w-full text-sm table-fixed">
-    <thead>
+    <thead class="sticky top-0 z-10">
       <tr class="w-full bg-surface-container-low border-b border-outline-variant">
-        <th class="p-2 text-left font-medium text-on-surface" style="width: 10%;">Hour</th>
+        <th class="p-2 text-left font-medium text-on-surface bg-surface-container-low" style="width: 10%;">Hour</th>
         {% for day in days %}
-          <th class="p-2 text-left font-medium text-on-surface" style="width: 16%;">
+          <th class="p-2 text-left font-medium text-on-surface bg-surface-container-low" style="width: 16%;">
             {{ day|title }}
           </th>
         {% endfor %}
@@ -76,3 +76,20 @@
     vertical-align: top;
   }
 </style>
+
+<script>
+    {% comment %} Scroll to the first scheduled block on page load {% endcomment %}
+  document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("feed-rules-schedule");
+    if (!container) return;
+
+    // First scheduled block cell is the first td with a rowspan.
+    const firstBlockCell = container.querySelector("tbody td[rowspan]");
+    if (!firstBlockCell) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const blockRect = firstBlockCell.getBoundingClientRect();
+    const topPadding = 48;
+    container.scrollTop += blockRect.top - containerRect.top - topPadding;
+  });
+</script>
