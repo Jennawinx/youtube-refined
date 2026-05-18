@@ -12,8 +12,12 @@
                     <p class="text-sm text-on-surface-variant/70 mt-1">Refresh channel data and review the subscriptions currently stored in the app.</p>
                 </div>
             </div>
-            {% url 'subscriptions_create' as subscriptions_create_url %}
-            {% include "components/button.html" with href=subscriptions_create_url label="Add Channel" %}
+            <div class="flex items-center gap-2">
+                {% url 'feed_rules' as feed_rules_url %}
+                {% include "components/button.html" with href=feed_rules_url label="Feed Rules" color="secondary" %}
+                {% url 'subscriptions_create' as subscriptions_create_url %}
+                {% include "components/button.html" with href=subscriptions_create_url label="Add Channel" %}
+            </div>
             {% comment %} <form method="post">
                 {% csrf_token %}
                 <button type="submit" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold transition-transform active:scale-95 shadow-sm">

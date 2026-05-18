@@ -15,10 +15,8 @@
         <div class="flex items-center gap-3 flex-wrap">
           <form method="post" class="flex gap-2">
             {% csrf_token %}
-            {% include 'components/button.html' with label='Test Categorize Video' name='test_categorize' value='true' color='secondary' %}
+            {% comment %} {% include 'components/button.html' with label='Test Categorize Video' name='test_categorize' value='true' color='secondary' %} {% endcomment %}
           </form>
-          {% url 'feed_rules' as feed_rules_url %}
-          {% include 'components/button.html' with href=feed_rules_url label='Rules' color='secondary' %}
           {% url 'subscriptions' as subscriptions_url %}
           {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
         </div>
