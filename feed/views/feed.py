@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.shortcuts import render
 
 from feed.models import Video
-from feed.services.openai import categorize_videos
+from feed.services.categorizer_llm import categorize_videos
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 PAGE_SIZE = 20

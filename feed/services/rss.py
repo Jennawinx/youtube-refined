@@ -3,7 +3,7 @@ import logging
 from urllib.request import urlopen
 from django.utils import timezone
 from feed.models import Channel, Video
-from feed.services.openai import VideoDetails, categorize_videos
+from feed.services.categorizer_llm import VideoDetails, categorize_videos
 from feed.services.rss_parsing import (
     RssFeed,
     RssRefreshError,

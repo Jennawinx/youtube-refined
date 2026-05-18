@@ -4,7 +4,7 @@ from typing import Optional
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from feed.models import FeedRule
-from feed.services.openai import topics
+from feed.services.categorizer_llm import topics
 from feed.services.schedule import compute_weekly_schedule
 
 def _rule_form_context_from_data(data: dict) -> dict:
