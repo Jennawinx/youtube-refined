@@ -1,14 +1,14 @@
 from django.urls import path
-from feed.view.rules import (
+from feed.views.rules import (
     feed_rules, 
     feed_rules_create, 
     feed_rules_modify
 )
-from feed.view.subscriptions import (
+from feed.views.subscriptions import (
     subscriptions, 
     subscriptions_create
 )
-from .view.feed import (
+from feed.views.feed import (
     home,
     home_more_html,
 )
