@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from feed.models import FeedRule
 from feed.services.categorizer_llm import topics
-from feed.services.schedule import compute_weekly_schedule
+from feed.services.schedule import get_rules_schedule
 from feed.utils import parse_rating
 
 
@@ -88,7 +88,7 @@ def _parse_rule_form_payload(data: dict) -> tuple[dict, Optional[str]]:
 
 def feed_rules(request):
     rules = FeedRule.objects.order_by("start_time", "name")
-    schedule = compute_weekly_schedule(list(rules))
+    schedule = get_rules_schedule()
     current_hour = timezone.localtime(timezone.now()).hour
     
     context = {

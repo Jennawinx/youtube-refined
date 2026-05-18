@@ -1,11 +1,10 @@
-from asyncio.log import logger
 from typing import Optional
 from django.db.models import Q
 from django.shortcuts import render
 from django.utils import timezone
 
 from feed.models import Video
-from feed.services.categorizer_llm import categorize_videos
+from feed.services.schedule import get_rules_schedule
 from feed.utils import parse_day, parse_hour, parse_rating
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
@@ -64,6 +63,9 @@ def home(request):
 
     day = test_day if test_day is not None else current_day
     hour = test_hour if test_hour is not None else current_hour
+
+    rule_schedule = get_rules_schedule()
+    current_rule = None
 
     search_query = request.GET.get("q", "").strip()
     energy_min = parse_rating(request.GET.get("energy_min", ""))

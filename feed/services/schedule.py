@@ -20,6 +20,7 @@ from datetime import time
 from typing import Optional
 
 from feed.models import FeedRule
+from django.core.cache import cache
 
 
 class TimeRange:
@@ -245,7 +246,7 @@ def resolve_overlaps(ranges: list[TimeRange]) -> list[TimeRange]:
     return resolved
 
 
-def compute_weekly_schedule(rules: list[FeedRule]) -> dict[str, list[TimeRange]]:
+def compute_rules_schedule(rules: list[FeedRule]) -> dict[str, list[TimeRange]]:
     """
     Compute a weekly schedule from FeedRules.
 
@@ -296,3 +297,21 @@ def compute_weekly_schedule(rules: list[FeedRule]) -> dict[str, list[TimeRange]]
         schedule[day] = resolve_overlaps(schedule[day])
 
     return schedule
+
+
+def cache_rules_schedule():
+    """Compute and cache the weekly schedule for quick retrieval."""
+    print("Computing and caching weekly schedule...")
+    rules = FeedRule.objects.order_by("start_time", "name")
+    schedule = compute_rules_schedule(list(rules))
+    cache.set("feed_rules_schedule", schedule)
+
+
+def get_rules_schedule() -> dict[str, list[TimeRange]]:
+    """Get the weekly schedule from cache, computing it if not present."""
+    schedule = cache.get("feed_rules_schedule")
+    if schedule: 
+        return schedule
+    else:
+        cache_rules_schedule()
+        return cache.get("feed_rules_schedule")

@@ -65,7 +65,7 @@ sample_output = [
     }
 ]
 
-system_message = f"""
+LLM_SYS_PROMPT_CATEGORIZE = f"""
 Help categorize the videos.
 For presentation select 1 of {", ".join(presentation)}.
 For topics select any of {", ".join(topics)}.
@@ -75,12 +75,6 @@ Example
 {json.dumps(sample_output, separators=(',', ':'))}
 Return result in JSON array
 """
-
-print(
-    "=============================================\nInitialized openai client and system prompts:\n=============================================\n"
-)
-print(f"Categorize Video System Message:\n{system_message}")
-
 
 """
 example inputs
@@ -130,7 +124,7 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
     response = client.responses.create(
         # model="gpt-5.4-nano", # Better with instructions
         model="gpt-4o-mini",
-        instructions=system_message,
+        instructions=LLM_SYS_PROMPT_CATEGORIZE,
         input=json.dumps(
             [
                 {"id": v.id, "thumbnail_url": v.thumbnail_url, "title": v.title}
