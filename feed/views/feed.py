@@ -2,10 +2,11 @@ from asyncio.log import logger
 from typing import Optional
 from django.db.models import Q
 from django.shortcuts import render
+from django.utils import timezone
 
 from feed.models import Video
 from feed.services.categorizer_llm import categorize_videos
-from feed.utils import parse_rating
+from feed.utils import parse_day, parse_hour, parse_rating
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 PAGE_SIZE = 20
@@ -43,12 +44,33 @@ def get_video_page(
     return videos, has_more, next_offset
 
 
+# TODO: custom maybe some saved filter from the db
+def parse_search_screen (value: str) -> str:
+    """Parse search mode; returns 'recommended' | 'all' | 'custom' (default: 'recommend')."""
+    if value is None:
+        return "recommend"
+    
+    mode = value.strip().lower()
+    return mode if mode in {"recommended", "all", "custom"} else "recommended"
+
 def home(request):
+    search_screen = parse_search_screen(request.GET.get("search_screen", "recommended"))
+    test_day = parse_day(request.GET.get("test_day", ""))
+    test_hour = parse_hour(request.GET.get("test_hour", ""))
+
+    current_time = timezone.localtime()
+    current_hour = current_time.hour
+    current_day = current_time.strftime("%A").lower()
+
+    day = test_day if test_day is not None else current_day
+    hour = test_hour if test_hour is not None else current_hour
+
     search_query = request.GET.get("q", "").strip()
     energy_min = parse_rating(request.GET.get("energy_min", ""))
     energy_max = parse_rating(request.GET.get("energy_max", ""))
     educational_min = parse_rating(request.GET.get("educational_min", ""))
     educational_max = parse_rating(request.GET.get("educational_max", ""))
+
     videos, has_more, next_offset = get_video_page(
         offset=0,
         search_query=search_query,
@@ -58,6 +80,9 @@ def home(request):
         educational_max=educational_max,
     )
     context = {
+        "day": day,
+        "hour": hour,
+        "search_screen": search_screen,
         "videos": videos,
         "has_more": has_more,
         "next_offset": next_offset,
@@ -67,21 +92,6 @@ def home(request):
         "educational_min": educational_min,
         "educational_max": educational_max,
     }
-
-    if request.method == "POST":
-        try:
-            result = categorize_videos(
-                [
-                    {
-                        "thumbnail_url": "https://i.ytimg.com/vi/cTymndypryw/hq720.jpg",
-                        "title": "Quiet Night Reset | 夜の静けさ – Relaxing Music to Unwind & Clear Your Mind",
-                    }
-                ]
-            )
-            context["categorize_success"] = f"Categorization result: {result}"
-        except Exception as exc:
-            logger.exception("Categorize request failed")
-            context["categorize_error"] = f"Error: {str(exc)}"
 
     return render(request, "feed/home.html", context=context)
 
