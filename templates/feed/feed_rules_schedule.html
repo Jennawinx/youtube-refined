@@ -16,7 +16,7 @@
     </thead>
     <tbody>
       {% for hour in hours %}
-        <tr class="border-b border-outline-variant hover:bg-surface-container-low">
+        <tr data-hour="{{ hour }}" class="border-b border-outline-variant{% if hour == current_hour %} current-hour-row{% endif %}">
           <td class="p-2 font-medium text-on-surface-variant bg-surface-container-lowest sticky left-0 z-10">
             {{ hour|stringformat:"02d" }}:00
           </td>
@@ -77,6 +77,10 @@
   {# Style for schedule table cells #}
   td {
     vertical-align: top;
+  }
+
+  tr.current-hour-row > td {
+    background-color: rgba(162, 201, 167, 0.12);
   }
 </style>
 

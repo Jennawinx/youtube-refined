@@ -1,4 +1,5 @@
 import logging
+from django.utils import timezone
 
 from typing import Optional
 
@@ -281,6 +282,7 @@ def _parse_rule_form_payload(data: dict) -> tuple[dict, Optional[str]]:
 def feed_rules(request):
     rules = FeedRule.objects.order_by("start_time", "name")
     schedule = compute_weekly_schedule(list(rules))
+    current_hour = timezone.localtime(timezone.now()).hour
     
     context = {
         "rules": rules,
@@ -288,6 +290,7 @@ def feed_rules(request):
         "schedule": schedule,
         "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
         "hours": list(range(24)),
+        "current_hour": current_hour,
     }
     return render(request, "feed/feed_rules.html", context=context)
 
