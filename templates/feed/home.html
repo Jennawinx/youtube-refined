@@ -10,6 +10,11 @@
     <header class="flex flex-col gap-4">
       {% include 'components/banner_success.html' with message=categorize_success %}
       {% include 'components/banner_error.html' with message=categorize_error %}
+      <div role="tablist" class="tabs tabs-box">
+        <a role="tab" class="tab">Tab 1</a>
+        <a role="tab" class="tab tab-active">Tab 2</a>
+        <a role="tab" class="tab">Tab 3</a>
+      </div>
       <div class="flex items-center justify-between gap-4">
         <h1 class="text-4xl font-extrabold tracking-tight">YouTube Refined</h1>
         <div class="flex items-center gap-3 flex-wrap">

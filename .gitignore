@@ -16,3 +16,6 @@ venv/
 .DS_Store
 .vscode/
 .env
+
+# UI
+feed/static/css/tailwindcss
