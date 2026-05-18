@@ -6,6 +6,8 @@ from django.urls import reverse
 from feed.models import FeedRule
 from feed.services.categorizer_llm import topics
 from feed.services.schedule import compute_weekly_schedule
+from feed.utils import parse_rating
+
 
 def _rule_form_context_from_data(data: dict) -> dict:
     return {
@@ -43,10 +45,10 @@ def _parse_rule_form_payload(data: dict) -> tuple[dict, Optional[str]]:
     end_time = data.get("end_time", "").strip()
     category_tags_input = data.get("category_tags", "").strip()
 
-    min_energy = _parse_rating(data.get("min_energy", ""))
-    max_energy = _parse_rating(data.get("max_energy", ""))
-    min_educational = _parse_rating(data.get("min_educational", ""))
-    max_educational = _parse_rating(data.get("max_educational", ""))
+    min_energy = parse_rating(data.get("min_energy", ""))
+    max_energy = parse_rating(data.get("max_energy", ""))
+    min_educational = parse_rating(data.get("min_educational", ""))
+    max_educational = parse_rating(data.get("max_educational", ""))
 
     selected_days = _selected_days_from_data(data)
 

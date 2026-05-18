@@ -5,18 +5,10 @@ from django.shortcuts import render
 
 from feed.models import Video
 from feed.services.categorizer_llm import categorize_videos
+from feed.utils import parse_rating
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 PAGE_SIZE = 20
-
-
-def parse_rating(value: str, min:int = 1, max:int = 10) -> Optional[int]:
-    """Parse a 1-10 rating GET param; returns None if missing/invalid."""
-    try:
-        v = int(value)
-        return v if min <= v <= max else None
-    except (ValueError, TypeError):
-        return None
 
 
 def get_video_page(
