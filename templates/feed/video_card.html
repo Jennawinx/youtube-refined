@@ -29,9 +29,9 @@
         <div class="flex justify-between items-start gap-2 mt-1">
             <div class="flex flex-wrap gap-1">
                 {% for tag in video.category_tags %}
-                <span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-[9px] font-medium">
+                <div class="badge badge-primary badge-xs">
                     {{ tag }}
-                </span>
+                </div>
                 {% endfor %}
             </div>
             {% if video.energy or video.educational %}

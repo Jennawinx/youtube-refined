@@ -4,3 +4,37 @@
 @source not "./daisyui{,*}.mjs";
 
 @plugin "./daisyui.mjs";
+@plugin "./daisyui-theme.mjs" {
+  name: "pastel";
+  default: false;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(98.462% 0.001 247.838);
+  --color-base-300: oklch(92.462% 0.001 247.838);
+  --color-base-content: oklch(20% 0 0);
+  --color-primary: oklch(94% 0.029 294.588);
+  --color-primary-content: oklch(59.6% 0.132 292.581);
+  --color-secondary: oklch(93.1% 0.035 49.800);
+  --color-secondary-content: oklch(75.6% 0.156 13.100);
+  --color-accent: oklch(91.1% 0.040 17);
+  --color-accent-content: oklch(48.2% 0.106 36.600);
+  --color-neutral: oklch(60.6% 0.056 288.200);
+  --color-neutral-content: oklch(92% 0.013 255.508);
+  --color-info: oklch(94.4% 0.029 207.078);
+  --color-info-content: oklch(60.8% 0.085 223.128);
+  --color-success: oklch(87.5% 0.072 147.100);
+  --color-success-content: oklch(53% 0.052 152.100);
+  --color-warning: oklch(93.5% 0.098 66.290);
+  --color-warning-content: oklch(67.1% 0.104 38.402);
+  --color-error: oklch(87.3% 0.044 19.571);
+  --color-error-content: oklch(47% 0.110 27.518);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 1;
+  --noise: 0;
+}

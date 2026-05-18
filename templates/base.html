@@ -1,16 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="pastel">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}YouTube Refined{% endblock %}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    {% comment %} <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script> {% endcomment %}
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- DaisyUI CSS -->
     {% load static %}
     <link href="{% static 'css/output.css' %}" rel="stylesheet" type="text/css" />
-    {% comment %} <script id="tailwind-config">
+    {% comment %} <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" /> {% endcomment %}
+    {% comment %} <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> {% endcomment %}
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -82,7 +87,7 @@
                 }
             }
         }
-    </script> {% endcomment %}
+    </script>
     <style>
         body {
             font-family: 'Manrope', sans-serif;

@@ -6,6 +6,8 @@ python manage.py runserver
 
 ### modifying theming
 
+Daisy only adds css to the output file if it's been used
+
 ```bash
 # Install standalone exe
 cd feed/static/css && curl -sL daisyui.com/fast | bash
