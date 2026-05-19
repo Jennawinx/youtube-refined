@@ -15,16 +15,15 @@
           {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
         </div>
       </div>
-      <form method="get" class="w-full flex flex-col gap-2">
-        <div class="flex flex-wrap items-center gap-2 justify-between px-4">
-          <div class="flex items-center gap-3">
-            <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Mental energy</span>
-            {% include 'components/rate.html' with name='energy' selected_min=energy_min selected_max=energy_max max=10 %}
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap text-right">Educational</span>
-            {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
-          </div>
+      <form method="get" class="w-full flex flex-col gap-1">
+        <div role="tablist" class="tabs tabs-box tabs-sm bg-gray-200/35 rounded-md">
+          {% for screen in screen_options %}
+            <a
+              role="tab"
+              href="{{ home_url }}?screen_type={{ screen }}&q={{ search_query|urlencode }}&energy_min={{ energy_min|default_if_none:"" }}&energy_max={{ energy_max|default_if_none:"" }}&educational_min={{ educational_min|default_if_none:"" }}&educational_max={{ educational_max|default_if_none:"" }}"
+              class="tab {% if screen_type == screen %}tab-active{% endif %}"
+            >{{ screen|capfirst }}</a>
+          {% endfor %}
         </div>
         <div class="flex items-center gap-2">
           <input
@@ -46,15 +45,15 @@
           {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
           {% include 'components/button.html' with href=home_url|add:'?screen_type='|add:screen_type label='Clear' color='secondary' %}
         </div>
-
-        <div role="tablist" class="tabs tabs-box tabs-sm">
-          {% for screen in screen_options %}
-            <a
-              role="tab"
-              href="{{ home_url }}?screen_type={{ screen }}&q={{ search_query|urlencode }}&energy_min={{ energy_min|default_if_none:"" }}&energy_max={{ energy_max|default_if_none:"" }}&educational_min={{ educational_min|default_if_none:"" }}&educational_max={{ educational_max|default_if_none:"" }}"
-              class="tab {% if screen_type == screen %}tab-active{% endif %}"
-            >{{ screen|capfirst }}</a>
-          {% endfor %}
+        <div class="flex flex-wrap items-center gap-2 justify-between px-1 py-2">
+          <div class="flex items-center gap-3">
+            <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Mental energy</span>
+            {% include 'components/rate.html' with name='energy' selected_min=energy_min selected_max=energy_max max=10 %}
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap text-right">Educational</span>
+            {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
+          </div>
         </div>
       </form>
     </header>
