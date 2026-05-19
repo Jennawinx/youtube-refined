@@ -21,7 +21,19 @@ from typing import Optional
 
 from feed.models import FeedRule
 from django.core.cache import cache
+from enum import StrEnum
 
+class WeekDay(StrEnum):
+    MONDAY = "monday"
+    TUESDAY = "tuesday"
+    WEDNESDAY = "wednesday"
+    THURSDAY = "thursday"
+    FRIDAY = "friday"
+    SATURDAY = "saturday"
+    SUNDAY = "sunday"
+
+type RuleSchedule = dict[WeekDay, list["TimeRange"]]
+"""{ weekday -> [{ start_hour, end_hour, rule_name, category_tags, min_energy, max_energy, min_educational, max_educational }] }"""
 
 class TimeRange:
     """Represents a time range with associated rule metadata."""
@@ -246,7 +258,7 @@ def resolve_overlaps(ranges: list[TimeRange]) -> list[TimeRange]:
     return resolved
 
 
-def compute_rules_schedule(rules: list[FeedRule]) -> dict[str, list[TimeRange]]:
+def compute_rules_schedule(rules: list[FeedRule]) -> RuleSchedule:
     """
     Compute a weekly schedule from FeedRules.
 
@@ -256,13 +268,13 @@ def compute_rules_schedule(rules: list[FeedRule]) -> dict[str, list[TimeRange]]:
     Days are: monday, tuesday, wednesday, thursday, friday, saturday, sunday
     """
     day_names = [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
+        WeekDay.MONDAY,
+        WeekDay.TUESDAY,
+        WeekDay.WEDNESDAY,
+        WeekDay.THURSDAY,
+        WeekDay.FRIDAY,
+        WeekDay.SATURDAY,
+        WeekDay.SUNDAY,
     ]
     schedule = {day: [] for day in day_names}
 
@@ -307,7 +319,7 @@ def cache_rules_schedule():
     cache.set("feed_rules_schedule", schedule)
 
 
-def get_rules_schedule() -> dict[str, list[TimeRange]]:
+def get_rules_schedule() -> RuleSchedule:
     """Get the weekly schedule from cache, computing it if not present."""
     schedule = cache.get("feed_rules_schedule")
     if schedule: 
@@ -315,3 +327,12 @@ def get_rules_schedule() -> dict[str, list[TimeRange]]:
     else:
         cache_rules_schedule()
         return cache.get("feed_rules_schedule")
+
+
+def get_current_time_block(day: WeekDay, hour: int) -> Optional[TimeRange]:
+    """Get the active TimeRange for the given day and hour, if any."""
+    schedule = get_rules_schedule()
+    for time_range in schedule.get(day, []):
+        if time_range.start_hour <= hour < time_range.end_hour:
+            return time_range
+    return None

@@ -1,5 +1,7 @@
 from typing import Optional
 
+from feed.services.schedule import WeekDay
+
 # Input parsing
 
 def parse_rating(value: str, min:int = 1, max:int = 10) -> Optional[int]:
@@ -11,22 +13,22 @@ def parse_rating(value: str, min:int = 1, max:int = 10) -> Optional[int]:
         return None
 
 
-def parse_day(value: str) -> Optional[str]:
-    """Parse full weekday name; returns lowercase name or None if invalid."""
+def parse_week_day(value: str) -> Optional[WeekDay]:
+    """Parse full weekday name; returns WeekDay enum or None if invalid."""
     days = {
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
+        "monday": WeekDay.MONDAY,
+        "tuesday": WeekDay.TUESDAY,
+        "wednesday": WeekDay.WEDNESDAY,
+        "thursday": WeekDay.THURSDAY,
+        "friday": WeekDay.FRIDAY,
+        "saturday": WeekDay.SATURDAY,
+        "sunday": WeekDay.SUNDAY,
     }
     if value is None:
         return None
     
     day = value.strip().lower()
-    return day if day in days else None
+    return days.get(day, None)
 
 
 def parse_hour(value: str) -> Optional[int]:

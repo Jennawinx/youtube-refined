@@ -4,8 +4,8 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from feed.models import Video
-from feed.services.schedule import get_rules_schedule
-from feed.utils import parse_day, parse_hour, parse_rating
+from feed.services.schedule import get_current_time_block, get_rules_schedule
+from feed.utils import parse_week_day, parse_hour, parse_rating
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 PAGE_SIZE = 20
@@ -54,18 +54,21 @@ def parse_search_screen (value: str) -> str:
 
 def home(request):
     search_screen = parse_search_screen(request.GET.get("search_screen", "recommended"))
-    test_day = parse_day(request.GET.get("test_day", ""))
+    test_day = parse_week_day(request.GET.get("test_day", ""))
     test_hour = parse_hour(request.GET.get("test_hour", ""))
 
     current_time = timezone.localtime()
     current_hour = current_time.hour
     current_day = current_time.strftime("%A").lower()
 
-    day = test_day if test_day is not None else current_day
+    day = test_day if test_day is not None else parse_week_day(current_day)
     hour = test_hour if test_hour is not None else current_hour
 
-    rule_schedule = get_rules_schedule()
-    current_rule = None
+    current_rule = get_current_time_block(day, hour)
+
+    print(f"Parsed test_day: {test_day}, test_hour: {test_hour}")
+    print(f"Current time: {current_time}, day: {day}, hour: {hour}, active rule: {current_rule.rule_name if current_rule else None}")
+    print(f"Current screen: {search_screen}")
 
     search_query = request.GET.get("q", "").strip()
     energy_min = parse_rating(request.GET.get("energy_min", ""))
@@ -85,6 +88,7 @@ def home(request):
         "day": day,
         "hour": hour,
         "search_screen": search_screen,
+        "current_rule": current_rule,
         "videos": videos,
         "has_more": has_more,
         "next_offset": next_offset,
