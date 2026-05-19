@@ -55,6 +55,42 @@
             {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
           </div>
         </div>
+        {% if current_rule %}
+          <details class="rounded-lg border border-outline-variant/60 bg-surface/80 px-4 py-2 shadow-sm">
+            <summary class="cursor-pointer list-none flex items-center justify-between gap-4 text-sm text-on-surface select-none">
+              <span>Current rule: {{ current_rule.rule_name }}</span>
+              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Show details</span>
+            </summary>
+            <div class="mt-4 grid gap-3 text-sm text-on-surface-variant sm:grid-cols-2">
+              <div>
+                <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Time</p>
+                <p class="mt-1 text-on-surface">{{ current_rule.time_str }}</p>
+              </div>
+              {% if current_rule.category_tags %}
+                <div>
+                  <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Tags</p>
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    {% for tag in current_rule.category_tags %}
+                      <span class="badge badge-info">{{ tag }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+              {% if current_rule.min_energy or current_rule.max_energy %}
+                <div>
+                  <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Mental energy</p>
+                  <p class="mt-1 text-on-surface">{{ current_rule.min_energy|default:'-' }} to {{ current_rule.max_energy|default:'-' }}</p>
+                </div>
+              {% endif %}
+              {% if current_rule.min_educational or current_rule.max_educational %}
+                <div>
+                  <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Educational</p>
+                  <p class="mt-1 text-on-surface">{{ current_rule.min_educational|default:'-' }} to {{ current_rule.max_educational|default:'-' }}</p>
+                </div>
+              {% endif %}
+            </div>
+          </details>
+        {% endif %}
       </form>
     </header>
 
