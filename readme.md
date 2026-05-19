@@ -1,6 +1,11 @@
 ### Get started
 ```bash
+# First time
+python3.14 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
+
+# Run
 python manage.py runserver
 ```
 
