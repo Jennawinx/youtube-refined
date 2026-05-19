@@ -1,3 +1,4 @@
+from enum import StrEnum
 from typing import Optional
 from django.db.models import Q
 from django.shortcuts import render
@@ -9,6 +10,12 @@ from feed.utils import parse_week_day, parse_hour, parse_rating
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 PAGE_SIZE = 20
+
+
+class ScreenType(StrEnum):
+    RECOMMENDED = "recommended"
+    ALL = "all"
+    CUSTOM = "custom"
 
 
 def get_video_page(
@@ -44,13 +51,14 @@ def get_video_page(
 
 
 # TODO: custom maybe some saved filter from the db
-def parse_search_screen (value: str) -> str:
-    """Parse search mode; returns 'recommended' | 'all' | 'custom' (default: 'recommend')."""
+def parse_screen_type (value: Optional[str]) -> str:
+    """Parse screen type from GET param; defaults to RECOMMENDED if missing/invalid."""
     if value is None:
-        return "recommend"
+        return ScreenType.RECOMMENDED
     
     mode = value.strip().lower()
-    return mode if mode in {"recommended", "all", "custom"} else "recommended"
+    return mode if mode in {ScreenType.RECOMMENDED, ScreenType.ALL, ScreenType.CUSTOM} else ScreenType.RECOMMENDED
+
 
 def home(request):
     try:
@@ -58,9 +66,9 @@ def home(request):
     except (ValueError, TypeError):
         offset = 0
 
-    search_screen = parse_search_screen(request.GET.get("search_screen", "recommended"))
-    test_day = parse_week_day(request.GET.get("test_day", ""))
-    test_hour = parse_hour(request.GET.get("test_hour", ""))
+    screen_type = parse_screen_type(request.GET.get("screen_type"))
+    test_day = parse_week_day(request.GET.get("test_day"))
+    test_hour = parse_hour(request.GET.get("test_hour"))
 
     current_time = timezone.localtime()
     current_hour = current_time.hour
@@ -73,22 +81,22 @@ def home(request):
 
     print(f"Parsed test_day: {test_day}, test_hour: {test_hour}")
     print(f"Current time: {current_time}, day: {day}, hour: {hour}, active rule: {current_rule.rule_name if current_rule else None}")
-    print(f"Current screen: {search_screen}")
+    print(f"Current screen: {screen_type}")
 
     search_query = request.GET.get("q", "").strip()
-    search_energy_min = parse_rating(request.GET.get("energy_min", ""))
-    search_energy_max = parse_rating(request.GET.get("energy_max", ""))
-    search_educational_min = parse_rating(request.GET.get("educational_min", ""))
-    search_educational_max = parse_rating(request.GET.get("educational_max", ""))
+    search_energy_min = parse_rating(request.GET.get("energy_min"))
+    search_energy_max = parse_rating(request.GET.get("energy_max"))
+    search_educational_min = parse_rating(request.GET.get("educational_min"))
+    search_educational_max = parse_rating(request.GET.get("educational_max"))
 
     context = {
         "day": day,
         "hour": hour,
-        "search_screen": search_screen,
+        "screen_type": screen_type,
         "current_rule": current_rule,
         "offset": offset,
         "search_query": search_query,
-        "energy_min": [search_energy_min, ],
+        "energy_min": search_energy_min,
         "energy_max": search_energy_max,
         "educational_min": search_educational_min,
         "educational_max": search_educational_max,
