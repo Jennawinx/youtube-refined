@@ -100,6 +100,9 @@ def home(request):
     context = {
         "day": day,
         "hour": hour,
+        "test_day": test_day,
+        "test_hour": test_hour,
+        "screen_options": [ScreenType.RECOMMENDED, ScreenType.ALL, ScreenType.CUSTOM],
         "screen_type": screen_type,
         "current_rule": current_rule,
         "offset": offset,
