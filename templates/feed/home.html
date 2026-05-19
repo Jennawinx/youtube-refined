@@ -8,11 +8,6 @@
   <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-8">
     <!-- Header -->
     <header class="flex flex-col gap-4">
-      <div role="tablist" class="tabs tabs-box">
-        <a role="tab" class="tab">Tab 1</a>
-        <a role="tab" class="tab tab-active">Tab 2</a>
-        <a role="tab" class="tab">Tab 3</a>
-      </div>
       <div class="flex items-center justify-between gap-4">
         <h1 class="text-4xl font-extrabold tracking-tight">YouTube Refined</h1>
         <div class="flex items-center gap-3 flex-wrap">
@@ -20,17 +15,7 @@
           {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
         </div>
       </div>
-      <form method="get" class="w-full flex flex-col gap-3">
-        <div class="flex items-center gap-2">
-          <input
-            type="search"
-            name="q"
-            value="{{ search_query }}"
-            placeholder="Search videos by title, channel, or description"
-            class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary"
-          />
-          {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
-        </div>
+      <form method="get" class="w-full flex flex-col gap-2">
         <div class="flex flex-wrap items-center gap-2 justify-between px-4">
           <div class="flex items-center gap-3">
             <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Mental energy</span>
@@ -40,6 +25,24 @@
             <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap text-right">Educational</span>
             {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
           </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <input
+            type="search"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search videos by title, channel, or description"
+            class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary"
+          />
+          <input type="hidden" name="screen_type" value="{{ screen_type }}"/>
+          {% url 'home' as home_url %}
+          {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
+          {% include 'components/button.html' with href=home_url|add:'?screen_type='|add:screen_type label='Clear' color='secondary' %}
+        </div>
+        <div role="tablist" class="tabs tabs-box">
+          <a role="tab" value="recommended" class="tab tab-active">Recommended</a>
+          <a role="tab" value="all" class="tab">All</a>
+          <a role="tab" value="custom" class="tab">Custom</a>
         </div>
       </form>
 
