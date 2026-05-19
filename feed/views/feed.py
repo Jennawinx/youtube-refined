@@ -76,34 +76,39 @@ def home(request):
     print(f"Current screen: {search_screen}")
 
     search_query = request.GET.get("q", "").strip()
-    energy_min = parse_rating(request.GET.get("energy_min", ""))
-    energy_max = parse_rating(request.GET.get("energy_max", ""))
-    educational_min = parse_rating(request.GET.get("educational_min", ""))
-    educational_max = parse_rating(request.GET.get("educational_max", ""))
+    search_energy_min = parse_rating(request.GET.get("energy_min", ""))
+    search_energy_max = parse_rating(request.GET.get("energy_max", ""))
+    search_educational_min = parse_rating(request.GET.get("educational_min", ""))
+    search_educational_max = parse_rating(request.GET.get("educational_max", ""))
 
-    videos, has_more, next_offset = get_video_page(
-        offset=offset,
-        search_query=search_query,
-        energy_min=energy_min,
-        energy_max=energy_max,
-        educational_min=educational_min,
-        educational_max=educational_max,
-    )
     context = {
         "day": day,
         "hour": hour,
         "search_screen": search_screen,
         "current_rule": current_rule,
+        "offset": offset,
+        "search_query": search_query,
+        "energy_min": [search_energy_min, ],
+        "energy_max": search_energy_max,
+        "educational_min": search_educational_min,
+        "educational_max": search_educational_max,
+    }
+
+    videos, has_more, next_offset = get_video_page(
+        offset=context["offset"],
+        search_query=context["search_query"],
+        energy_min=context["energy_min"],
+        energy_max=context["energy_max"],
+        educational_min=context["educational_min"],
+        educational_max=context["educational_max"],
+    )
+
+    context.update({
         "videos": videos,
         "has_more": has_more,
         "next_offset": next_offset,
-        "search_query": search_query,
-        "energy_min": energy_min,
-        "energy_max": energy_max,
-        "educational_min": educational_min,
-        "educational_max": educational_max,
-    }
-
+    })
+    
     if offset == 0:
         return render(request, "feed/home.html", context=context)
     else: 

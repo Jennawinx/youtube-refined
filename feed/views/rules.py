@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from feed.models import FeedRule
 from feed.services.categorizer_llm import topics
-from feed.services.schedule import get_rules_schedule
+from feed.services.schedule import cache_rules_schedule, get_rules_schedule
 from feed.utils import parse_rating
 
 
@@ -121,6 +121,7 @@ def feed_rules_create(request):
 
         try:
             FeedRule.objects.create(**payload)
+            cache_rules_schedule()
             return redirect(f"{reverse('feed_rules')}?success=Feed+rule+added.")
         except Exception:
             logger.exception("Create feed rule request failed")
@@ -153,8 +154,11 @@ def feed_rules_modify(request, rule_id: int):
 
     if request.method == "POST":
         action = request.POST.get("action", "update").strip()
+        
+        # Handle delete
         if action == "delete":
             rule.delete()
+            cache_rules_schedule()
             return redirect(f"{reverse('feed_rules')}?success=Feed+rule+removed.")
 
         context.update(_rule_form_context_from_data(request.POST))
@@ -168,8 +172,10 @@ def feed_rules_modify(request, rule_id: int):
         for key, value in payload.items():
             setattr(rule, key, value)
 
+        # Handle update
         try:
             rule.save()
+            cache_rules_schedule()
             return redirect(f"{reverse('feed_rules')}?success=Feed+rule+updated.")
         except Exception:
             logger.exception("Update feed rule request failed for rule_id=%s", rule.id)

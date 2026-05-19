@@ -39,3 +39,9 @@ def parse_hour(value: str) -> Optional[int]:
     except (ValueError, TypeError):
         return None
 
+
+# Filters
+
+def filter_exists(l: list) -> list:
+    """Filter out None values from a list."""
+    return [x for x in l if x is not None]
