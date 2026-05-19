@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from feed.models import Video
-from feed.services.schedule import get_current_time_block, get_rules_schedule
+from feed.services.schedule import get_current_time_block
 from feed.utils import parse_week_day, parse_hour, parse_rating
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
@@ -53,6 +53,11 @@ def parse_search_screen (value: str) -> str:
     return mode if mode in {"recommended", "all", "custom"} else "recommended"
 
 def home(request):
+    try:
+        offset = max(0, int(request.GET.get("offset", 0)))
+    except (ValueError, TypeError):
+        offset = 0
+
     search_screen = parse_search_screen(request.GET.get("search_screen", "recommended"))
     test_day = parse_week_day(request.GET.get("test_day", ""))
     test_hour = parse_hour(request.GET.get("test_hour", ""))
@@ -77,7 +82,7 @@ def home(request):
     educational_max = parse_rating(request.GET.get("educational_max", ""))
 
     videos, has_more, next_offset = get_video_page(
-        offset=0,
+        offset=offset,
         search_query=search_query,
         energy_min=energy_min,
         energy_max=energy_max,
@@ -99,40 +104,7 @@ def home(request):
         "educational_max": educational_max,
     }
 
-    return render(request, "feed/home.html", context=context)
-
-
-def home_more_html(request):
-    try:
-        offset = max(0, int(request.GET.get("offset", 0)))
-    except (ValueError, TypeError):
-        offset = 0
-
-    search_query = request.GET.get("q", "").strip()
-    energy_min = parse_rating(request.GET.get("energy_min", ""))
-    energy_max = parse_rating(request.GET.get("energy_max", ""))
-    educational_min = parse_rating(request.GET.get("educational_min", ""))
-    educational_max = parse_rating(request.GET.get("educational_max", ""))
-
-    videos, has_more, next_offset = get_video_page(
-        offset=offset,
-        search_query=search_query,
-        energy_min=energy_min,
-        energy_max=energy_max,
-        educational_min=educational_min,
-        educational_max=educational_max,
-    )
-    return render(
-        request,
-        "feed/home_more.html",
-        context={
-            "videos": videos,
-            "has_more": has_more,
-            "next_offset": next_offset,
-            "search_query": search_query,
-            "energy_min": energy_min,
-            "energy_max": energy_max,
-            "educational_min": educational_min,
-            "educational_max": educational_max,
-        },
-    )
+    if offset == 0:
+        return render(request, "feed/home.html", context=context)
+    else: 
+        return render(request, "feed/home_more.html", context=context)
