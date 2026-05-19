@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from feed.models import Video
 from feed.services.schedule import get_current_time_block
-from feed.utils import parse_week_day, parse_hour, parse_rating
+from feed.utils import find_max, find_min, parse_week_day, parse_hour, parse_rating
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
 PAGE_SIZE = 20
@@ -66,28 +66,29 @@ def home(request):
     except (ValueError, TypeError):
         offset = 0
 
-    screen_type = parse_screen_type(request.GET.get("screen_type"))
-    test_day = parse_week_day(request.GET.get("test_day"))
-    test_hour = parse_hour(request.GET.get("test_hour"))
+    screen_type     = parse_screen_type(request.GET.get("screen_type"))
+    
+    test_day        = parse_week_day(request.GET.get("test_day"))
+    test_hour       = parse_hour(request.GET.get("test_hour"))
 
-    current_time = timezone.localtime()
-    current_hour = current_time.hour
-    current_day = current_time.strftime("%A").lower()
+    current_time    = timezone.localtime()
+    current_hour    = current_time.hour
+    current_day     = current_time.strftime("%A").lower()
 
-    day = test_day if test_day is not None else parse_week_day(current_day)
-    hour = test_hour if test_hour is not None else current_hour
+    day             = test_day if test_day is not None else parse_week_day(current_day)
+    hour            = test_hour if test_hour is not None else current_hour
 
-    current_rule = get_current_time_block(day, hour)
+    current_rule    = get_current_time_block(day, hour)
 
     print(f"Parsed test_day: {test_day}, test_hour: {test_hour}")
     print(f"Current time: {current_time}, day: {day}, hour: {hour}, active rule: {current_rule.rule_name if current_rule else None}")
     print(f"Current screen: {screen_type}")
 
-    search_query = request.GET.get("q", "").strip()
-    search_energy_min = parse_rating(request.GET.get("energy_min"))
-    search_energy_max = parse_rating(request.GET.get("energy_max"))
-    search_educational_min = parse_rating(request.GET.get("educational_min"))
-    search_educational_max = parse_rating(request.GET.get("educational_max"))
+    search_query            = request.GET.get("q", "").strip()
+    search_energy_min       = parse_rating(request.GET.get("energy_min"))
+    search_energy_max       = parse_rating(request.GET.get("energy_max"))
+    search_educational_min  = parse_rating(request.GET.get("educational_min"))
+    search_educational_max  = parse_rating(request.GET.get("educational_max"))
 
     context = {
         "day": day,
@@ -96,19 +97,32 @@ def home(request):
         "current_rule": current_rule,
         "offset": offset,
         "search_query": search_query,
-        "energy_min": search_energy_min,
-        "energy_max": search_energy_max,
-        "educational_min": search_educational_min,
-        "educational_max": search_educational_max,
     }
 
+    if screen_type == ScreenType.CUSTOM:
+        # TODO:
+        context["energy_min"]       = search_energy_min
+        context["energy_max"]       = search_energy_max
+        context["educational_min"]  = search_educational_min
+        context["educational_max"]  = search_educational_max
+    elif screen_type == ScreenType.RECOMMENDED and current_rule is not None:
+        context["energy_min"]       = find_max([search_energy_min, current_rule.min_energy])
+        context["energy_max"]       = find_min([search_energy_max, current_rule.max_energy])
+        context["educational_min"]  = find_max([search_educational_min, current_rule.min_educational])
+        context["educational_max"]  = find_min([search_educational_max, current_rule.max_educational])
+    else: # ScreenType.ALL
+        context["energy_min"]       = search_energy_min
+        context["energy_max"]       = search_energy_max
+        context["educational_min"]  = search_educational_min
+        context["educational_max"]  = search_educational_max
+
     videos, has_more, next_offset = get_video_page(
-        offset=context["offset"],
-        search_query=context["search_query"],
-        energy_min=context["energy_min"],
-        energy_max=context["energy_max"],
-        educational_min=context["educational_min"],
-        educational_max=context["educational_max"],
+        offset          = context["offset"],
+        search_query    = context["search_query"],
+        energy_min      = context["energy_min"],
+        energy_max      = context["energy_max"],
+        educational_min = context["educational_min"],
+        educational_max = context["educational_max"],
     )
 
     context.update({

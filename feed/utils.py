@@ -6,10 +6,10 @@ from feed.services.schedule import WeekDay
 
 def parse_rating(value: Optional[str], min:int = 1, max:int = 10) -> Optional[int]:
     """Parse a 1-10 rating GET param; returns None if missing/invalid."""
-    if value is None:
+    if value is None or value.strip() == "":
         return None
     try:
-        v = int(value)
+        v = int(value.strip())
         return v if min <= v <= max else None
     except (ValueError, TypeError):
         return None
@@ -17,7 +17,7 @@ def parse_rating(value: Optional[str], min:int = 1, max:int = 10) -> Optional[in
 
 def parse_week_day(value: Optional[str]) -> Optional[WeekDay]:
     """Parse full weekday name; returns WeekDay enum or None if invalid."""
-    if value is None:
+    if value is None or value.strip() == "":
         return None
     
     days = {
@@ -36,11 +36,11 @@ def parse_week_day(value: Optional[str]) -> Optional[WeekDay]:
 
 def parse_hour(value: Optional[str]) -> Optional[int]:
     """Parse hour value in the inclusive range 0..24."""
-    if value is None:
+    if value is None or value.strip() == "":
         return None
     
     try:
-        hour = int(value)
+        hour = int(value.strip())
         return hour if 0 <= hour <= 24 else None
     except (ValueError, TypeError):
         return None
@@ -51,3 +51,15 @@ def parse_hour(value: Optional[str]) -> Optional[int]:
 def filter_exists(l: list) -> list:
     """Filter out None values from a list."""
     return [x for x in l if x is not None]
+
+
+def find_max(l: list) -> Optional[int]:
+    """Find max value in a list, ignoring None; returns None if no valid values."""
+    filtered = filter_exists(l)
+    return max(filtered) if len(filtered) > 0 else None
+
+
+def find_min(l: list) -> Optional[int]:
+    """Find min value in a list, ignoring None; returns None if no valid values."""
+    filtered = filter_exists(l)
+    return min(filtered) if len(filtered) > 0 else None
