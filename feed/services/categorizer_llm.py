@@ -134,7 +134,7 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
         ),
         # text={"format": {"type": "json_object"}},
         reasoning={},
-        max_output_tokens=1024,
+        max_output_tokens=2048,
         store=True,
         include=["web_search_call.action.sources"],
     )

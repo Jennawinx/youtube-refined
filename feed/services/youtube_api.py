@@ -2,13 +2,19 @@ from __future__ import annotations
 
 import json
 import logging
+import ssl
+
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
+
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+import certifi
+
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 
 from feed.models import Channel, Video
 from feed.services.categorizer_llm import VideoDetails, categorize_videos
@@ -17,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 YOUTUBE_VIDEO_URL = "https://www.youtube.com/watch?v={video_id}"
+FETCH_SIZE = 5
 
 
 class YouTubeApiError(Exception):
@@ -42,8 +49,9 @@ class YouTubeFeed:
 
 def _api_get(endpoint: str, params: dict) -> dict:
     url = f"{YOUTUBE_API_BASE}/{endpoint}?{urlencode(params)}"
+    ctx = ssl.create_default_context(cafile=certifi.where())
     try:
-        with urlopen(url, timeout=30) as response:
+        with urlopen(url, timeout=30, context=ctx) as response:
             return json.loads(response.read())
     except Exception as exc:
         logger.exception("YouTube API request failed: %s", endpoint)
@@ -54,7 +62,7 @@ def _fetch_playlist_videos(playlist_id: str, api_key: str) -> list[YouTubeVideo]
     playlist_data = _api_get("playlistItems", {
         "part": "snippet",
         "playlistId": playlist_id,
-        "maxResults": 50,
+        "maxResults": FETCH_SIZE,
         "key": api_key,
     })
 
