@@ -55,6 +55,9 @@ ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS", default="localhost,127.0.0.1")
 # OpenAI configuration
 LLM_API_KEY = os.getenv("LLM_API_KEY")
 
+# YouTube Data API v3
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+
 # Application definition
 
 INSTALLED_APPS = [
