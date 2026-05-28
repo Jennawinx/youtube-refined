@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 YOUTUBE_VIDEO_URL = "https://www.youtube.com/watch?v={video_id}"
-FETCH_SIZE = 5
+FETCH_SIZE = 10
 
 
 class YouTubeApiError(Exception):
@@ -38,6 +38,8 @@ class YouTubeVideo:
     url: str
     thumbnail_url: str
     publish_date: datetime
+    duration_seconds: int = 0
+    categoryId: str = ""
 
 
 @dataclass
@@ -47,32 +49,41 @@ class YouTubeFeed:
     videos: list[YouTubeVideo]
 
 
+def _parse_duration(iso_duration: str) -> int:
+    import re
+    match = re.fullmatch(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", iso_duration)
+    if not match:
+        return 0
+    hours, minutes, seconds = (int(v or 0) for v in match.groups())
+    return hours * 3600 + minutes * 60 + seconds
+
+
+
 def _api_get(endpoint: str, params: dict) -> dict:
     url = f"{YOUTUBE_API_BASE}/{endpoint}?{urlencode(params)}"
     ctx = ssl.create_default_context(cafile=certifi.where())
     try:
         with urlopen(url, timeout=30, context=ctx) as response:
-            return json.loads(response.read())
+            response = json.loads(response.read())
+            print(f"\nAPI response for {endpoint}: \n\t{response}")
+            return response
     except Exception as exc:
         logger.exception("YouTube API request failed: %s", endpoint)
         raise YouTubeApiError(f"YouTube API request failed: {endpoint}") from exc
 
 
-def _fetch_playlist_videos(playlist_id: str, api_key: str) -> list[YouTubeVideo]:
-    playlist_data = _api_get("playlistItems", {
-        "part": "snippet",
-        "playlistId": playlist_id,
-        "maxResults": FETCH_SIZE,
+def _fetch_video_details(video_ids: list[str], api_key: str) -> list[YouTubeVideo]:
+    video_data = _api_get("videos", {
+        "part": "snippet,contentDetails",
+        "id": ",".join(video_ids),
         "key": api_key,
     })
 
     videos = []
-    for item in playlist_data.get("items", []):
+    for item in video_data.get("items", []):
+        video_id = item.get("id", "")
         snippet = item.get("snippet", {})
-        video_id = snippet.get("resourceId", {}).get("videoId", "")
-
-        if not video_id:
-            continue
+        content_details = item.get("contentDetails", {})
 
         thumbnails = snippet.get("thumbnails", {})
         thumbnail_url = thumbnails.get("default", {}).get("url", "")
@@ -84,15 +95,63 @@ def _fetch_playlist_videos(playlist_id: str, api_key: str) -> list[YouTubeVideo]
             url=YOUTUBE_VIDEO_URL.format(video_id=video_id),
             thumbnail_url=thumbnail_url,
             publish_date=parse_datetime(snippet.get("publishedAt", "")),
+            duration_seconds=_parse_duration(content_details.get("duration", "")),
+            categoryId=snippet.get("categoryId", ""),
         ))
 
     return videos
 
 
+def _fetch_playlist_videos(playlist_id: str, api_key: str) -> list[YouTubeVideo]:
+    playlist_data = _api_get("playlistItems", {
+        "part": "snippet",
+        "playlistId": playlist_id,
+        "maxResults": FETCH_SIZE,
+        "key": api_key,
+    })
+
+    video_ids = [
+        snippet["resourceId"]["videoId"]
+        for item in playlist_data.get("items", [])
+        if (snippet := item.get("snippet", {})) and snippet.get("resourceId", {}).get("videoId")
+    ]
+
+    if not video_ids:
+        return []
+
+    return _fetch_video_details(video_ids, api_key)
+
+
+def fetch_channel_feed(channel_id: str) -> YouTubeFeed:
+    api_key = settings.YOUTUBE_API_KEY
+
+    channel_data = _api_get("channels", {
+        "part": "snippet,contentDetails",
+        "id": channel_id,
+        "key": api_key,
+    })
+
+    items = channel_data.get("items", [])
+    if not items:
+        raise YouTubeApiError(f"Channel not found: {channel_id}")
+
+    channel_item = items[0]
+    channel_name = channel_item["snippet"]["title"]
+    uploads_playlist_id = channel_item["contentDetails"]["relatedPlaylists"]["uploads"]
+
+    videos = _fetch_playlist_videos(uploads_playlist_id, api_key)
+
+    return YouTubeFeed(
+        channel_id=channel_id,
+        name=channel_name,
+        videos=videos,
+    )
+
+
 def refresh_channel_with_feed(channel: Channel, feed: YouTubeFeed) -> int:
     # Filter out shorts
     videos_list = [
-        v for v in feed.videos if not ("/shorts/" in v.url.lower())
+        v for v in feed.videos if not ("/shorts/" in v.url.lower()) and (v.duration_seconds > 180)
     ]
     video_ids = {v.video_id for v in videos_list}
     existing_video_ids = set(
@@ -134,29 +193,3 @@ def refresh_channel_with_feed(channel: Channel, feed: YouTubeFeed) -> int:
     channel.save(update_fields=["last_updated"])
 
     return createdCount
-
-
-def fetch_channel_feed(channel_id: str) -> YouTubeFeed:
-    api_key = settings.YOUTUBE_API_KEY
-
-    channel_data = _api_get("channels", {
-        "part": "snippet,contentDetails",
-        "id": channel_id,
-        "key": api_key,
-    })
-
-    items = channel_data.get("items", [])
-    if not items:
-        raise YouTubeApiError(f"Channel not found: {channel_id}")
-
-    channel_item = items[0]
-    channel_name = channel_item["snippet"]["title"]
-    uploads_playlist_id = channel_item["contentDetails"]["relatedPlaylists"]["uploads"]
-
-    videos = _fetch_playlist_videos(uploads_playlist_id, api_key)
-
-    return YouTubeFeed(
-        channel_id=channel_id,
-        name=channel_name,
-        videos=videos,
-    )

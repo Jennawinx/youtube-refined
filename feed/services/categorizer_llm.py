@@ -146,7 +146,7 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
 
     try:
         json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
-        print(json_snippet)
+        print("\nCategorization JSON snippet:\n", json_snippet, "\n")
         results = json.loads(json_snippet)
         for result in results:
             categorizedVideos.append(
