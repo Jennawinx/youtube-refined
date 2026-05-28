@@ -37,6 +37,7 @@ class YouTubeVideo:
     description: str
     url: str
     thumbnail_url: str
+    thumbnail_url_low_res: str
     publish_date: datetime
     duration_seconds: int = 0
     categoryId: str = ""
@@ -86,7 +87,8 @@ def _fetch_video_details(video_ids: list[str], api_key: str) -> list[YouTubeVide
         content_details = item.get("contentDetails", {})
 
         thumbnails = snippet.get("thumbnails", {})
-        thumbnail_url = thumbnails.get("default", {}).get("url", "")
+        thumbnail_url = thumbnails.get("high", {}).get("url", "") or thumbnails.get("standard", {}).get("url", "") or thumbnails.get("default", {}).get("url", "")
+        thumbnail_url_low_res = thumbnails.get("default", {}).get("url", "")
 
         videos.append(YouTubeVideo(
             video_id=video_id,
@@ -94,6 +96,7 @@ def _fetch_video_details(video_ids: list[str], api_key: str) -> list[YouTubeVide
             description=snippet.get("description", ""),
             url=YOUTUBE_VIDEO_URL.format(video_id=video_id),
             thumbnail_url=thumbnail_url,
+            thumbnail_url_low_res=thumbnail_url_low_res,
             publish_date=parse_datetime(snippet.get("publishedAt", "")),
             duration_seconds=_parse_duration(content_details.get("duration", "")),
             categoryId=snippet.get("categoryId", ""),
@@ -160,7 +163,7 @@ def refresh_channel_with_feed(channel: Channel, feed: YouTubeFeed) -> int:
     new_videos = [v for v in videos_list if v.video_id not in existing_video_ids]
     categorized_videos = categorize_videos(
         [
-            VideoDetails(id=v.video_id, thumbnail_url=v.thumbnail_url, title=v.title)
+            VideoDetails(id=v.video_id, thumbnail_url=v.thumbnail_url_low_res, title=v.title)
             for v in new_videos
         ]
     )
