@@ -3,12 +3,15 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
+
+from feed.models import Channel, Video
+from feed.services.categorizer_llm import VideoDetails, categorize_videos
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +50,6 @@ def _api_get(endpoint: str, params: dict) -> dict:
         raise YouTubeApiError(f"YouTube API request failed: {endpoint}") from exc
 
 
-def _parse_datetime(value: str) -> datetime:
-    parsed = parse_datetime(value)
-    if parsed is None:
-        raise YouTubeApiError(f"Invalid published datetime: {value}")
-    return parsed
-
-
 def _fetch_playlist_videos(playlist_id: str, api_key: str) -> list[YouTubeVideo]:
     playlist_data = _api_get("playlistItems", {
         "part": "snippet",
@@ -79,10 +75,57 @@ def _fetch_playlist_videos(playlist_id: str, api_key: str) -> list[YouTubeVideo]
             description=snippet.get("description", ""),
             url=YOUTUBE_VIDEO_URL.format(video_id=video_id),
             thumbnail_url=thumbnail_url,
-            publish_date=_parse_datetime(snippet.get("publishedAt", "")),
+            publish_date=parse_datetime(snippet.get("publishedAt", "")),
         ))
 
     return videos
+
+
+def refresh_channel_with_feed(channel: Channel, feed: YouTubeFeed) -> int:
+    # Filter out shorts
+    videos_list = [
+        v for v in feed.videos if not ("/shorts/" in v.url.lower())
+    ]
+    video_ids = {v.video_id for v in videos_list}
+    existing_video_ids = set(
+        Video.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True)
+    )
+    new_videos = [v for v in videos_list if v.video_id not in existing_video_ids]
+    categorized_videos = categorize_videos(
+        [
+            VideoDetails(id=v.video_id, thumbnail_url=v.thumbnail_url, title=v.title)
+            for v in new_videos
+        ]
+    )
+    createdCount = 0
+
+    print(f"Found {len(new_videos)} new videos for channel {channel.name}")
+
+    for i in range(len(new_videos)):
+        video = new_videos[i]
+        categorized_video = categorized_videos[i]
+        _, created = Video.objects.get_or_create(
+            video_id=video.video_id,
+            defaults={
+                "channel": channel,
+                "title": video.title,
+                "description": video.description,
+                "url": video.url,
+                "thumbnail_url": video.thumbnail_url,
+                "publish_date": video.publish_date,
+                "presentation": categorized_video.presentation,
+                "category_tags": categorized_video.topics,
+                "energy": categorized_video.energy,
+                "educational": categorized_video.educational,
+            },
+        )
+        if created:
+            createdCount += 1
+
+    channel.last_updated = timezone.now()
+    channel.save(update_fields=["last_updated"])
+
+    return createdCount
 
 
 def fetch_channel_feed(channel_id: str) -> YouTubeFeed:

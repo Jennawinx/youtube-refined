@@ -1,8 +1,7 @@
 from asyncio.log import logger
 from django.shortcuts import redirect, render
 from feed.models import Channel
-from feed.services.rss import RssRefreshError, fetch_channel_feed, refresh_channel, refresh_channel_with_feed
-from feed.services.rss_parsing import parse_xml_feed
+from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_feed
 
 def subscriptions(request):
     channels = Channel.objects.order_by("name")
@@ -19,13 +18,15 @@ def subscriptions(request):
             )
         else:
             try:
-                created_count = refresh_channel(channel)
+                feed = fetch_channel_feed(selected_channel_id)
+                created_count = refresh_channel_with_feed(channel, feed)
+
                 context["refetch_success"] = (
                     f"Refetched {channel.name}: created={created_count}"
                 )
-            except RssRefreshError as exc:
-                logger.exception("Refresh channel request failed for channel_id=%s", channel.channel_id)
-                context["refetch_error"] = str(exc)
+            except Exception as exc:
+                logger.exception("Refresh channel request failed for channel_id=%s. %s", channel.channel_id, exc)
+                context["refetch_error"] = f"Unexpected error while refreshing channel. {exc}"
 
     return render(request, "feed/subscriptions.html", context=context)
 
@@ -43,10 +44,8 @@ def subscriptions_create(request):
         elif Channel.objects.filter(channel_id=channel_id).exists():
             context["create_error"] = f"Channel {channel_id} already exists."
         else:
-            try:
-                xml_bytes = fetch_channel_feed(channel_id)
-                feed = parse_xml_feed(xml_bytes)
-
+            try:    
+                feed = fetch_channel_feed(channel_id)
                 channel = Channel.objects.create(
                     channel_id=channel_id,
                     name=feed.name,
@@ -56,11 +55,8 @@ def subscriptions_create(request):
                 refresh_channel_with_feed(channel, feed)
 
                 return redirect("subscriptions")
-            except RssRefreshError as exc:
-                logger.exception("Create subscription request failed for channel_id=%s", channel_id)
-                context["create_error"] = str(exc)
-            except Exception:
-                logger.exception("Unexpected create subscription failure for channel_id=%s", channel_id)
-                context["create_error"] = "Unexpected error while creating subscription."
+            except Exception as exc:
+                logger.exception("Unexpected create subscription failure for channel_id=%s. %s", channel_id, exc)
+                context["create_error"] = f"Unexpected error while creating subscription. {exc}"
 
     return render(request, "feed/subscriptions_create.html", context=context)
