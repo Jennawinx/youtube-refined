@@ -114,8 +114,6 @@ class CategorizedVideo:
     educational: int = 0
 
 
-# TODO: create batches, download thumbnails and resize them until width is 150px then give it to gpt.
-
 def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
 
     if len(list_of_videos) == 0:
@@ -146,7 +144,7 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
 
     try:
         json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
-        print("\nCategorization JSON snippet:\n", json_snippet, "\n")
+        print("\nCategorization JSON snippet (Basic):\n", json_snippet, "\n")
         results = json.loads(json_snippet)
         for result in results:
             categorizedVideos.append(
@@ -161,6 +159,63 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
     except Exception as exc:
         print(f"Error parsing categorization response: {exc}")
         print(f"Raw response content: {response.output[0].content[0].text}")
+        raise exc
+
+    return categorizedVideos
+
+
+def categorize_videos_advanced(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+    if len(list_of_videos) == 0:
+        return []
+
+    content = []
+    for v in list_of_videos:
+        content.append({
+            "type": "text",
+            "text": json.dumps({"id": v.id, "title": v.title}, separators=(",", ":")),
+        })
+        if v.thumbnail_url:
+
+            content.append({
+                "type": "image_url",
+                "image_url": {"url": v.thumbnail_url, "detail": "low"},
+            })
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": LLM_SYS_PROMPT_CATEGORIZE},
+            {"role": "user", "content": content},
+        ],
+        max_completion_tokens=min(3200 * len(list_of_videos), 35000),
+        store=True,
+    )
+
+    categorizedVideos: list[CategorizedVideo] = []
+    responseText = response.choices[0].message.content
+
+    try:
+        # gpt-4o-mini
+        json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
+        print("\nCategorization JSON snippet (Advanced):\n", json_snippet, "\n")
+        results = json.loads(json_snippet)
+
+        # gpt-5.4-nano
+        # results = json.loads(responseText)
+        
+        for result in results:
+            categorizedVideos.append(
+                CategorizedVideo(
+                    presentation=result.get("presentation", None),
+                    topics=result.get("topics", []),
+                    energy=result.get("energy", 0),
+                    educational=result.get("educational", 0),
+                )
+            )
+
+    except Exception as exc:
+        print(f"Error parsing categorization response: {exc}")
+        print(f"Raw response content: {responseText}")
         raise exc
 
     return categorizedVideos

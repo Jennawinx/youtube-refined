@@ -17,13 +17,13 @@ from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from feed.models import Channel, Video
-from feed.services.categorizer_llm import VideoDetails, categorize_videos
+from feed.services.categorizer_llm import VideoDetails, categorize_videos_advanced
 
 logger = logging.getLogger(__name__)
 
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 YOUTUBE_VIDEO_URL = "https://www.youtube.com/watch?v={video_id}"
-FETCH_SIZE = 10
+FETCH_SIZE = 5
 
 
 class YouTubeApiError(Exception):
@@ -193,7 +193,7 @@ def refresh_channel_with_feed(channel: Channel, feed: YouTubeFeed) -> int:
         Video.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True)
     )
     new_videos = [v for v in videos_list if v.video_id not in existing_video_ids]
-    categorized_videos = categorize_videos(
+    categorized_videos = categorize_videos_advanced(
         [
             VideoDetails(id=v.video_id, thumbnail_url=v.thumbnail_url_low_res, title=v.title)
             for v in new_videos
