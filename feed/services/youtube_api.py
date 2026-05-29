@@ -31,6 +31,14 @@ class YouTubeApiError(Exception):
 
 
 @dataclass
+class YouTubeChannelResult:
+    channel_id: str
+    name: str
+    description: str
+    thumbnail_url: str
+
+
+@dataclass
 class YouTubeVideo:
     video_id: str
     title: str
@@ -57,6 +65,30 @@ def _parse_duration(iso_duration: str) -> int:
         return 0
     hours, minutes, seconds = (int(v or 0) for v in match.groups())
     return hours * 3600 + minutes * 60 + seconds
+
+
+def search_channels(query: str) -> list[YouTubeChannelResult]:
+    api_key = settings.YOUTUBE_API_KEY
+    data = _api_get("search", {
+        "part": "snippet",
+        "type": "channel",
+        "q": query,
+        "maxResults": 5,
+        "key": api_key,
+    })
+    results = []
+    for item in data.get("items", []):
+        channel_id = item.get("id", {}).get("channelId", "")
+        if not channel_id:
+            continue
+        snippet = item.get("snippet", {})
+        results.append(YouTubeChannelResult(
+            channel_id=channel_id,
+            name=snippet.get("title", ""),
+            description=snippet.get("description", ""),
+            thumbnail_url=snippet.get("thumbnails", {}).get("default", {}).get("url", ""),
+        ))
+    return results
 
 
 

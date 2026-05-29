@@ -1,7 +1,7 @@
 from asyncio.log import logger
 from django.shortcuts import redirect, render
 from feed.models import Channel
-from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_feed
+from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_feed, search_channels
 
 def subscriptions(request):
     channels = Channel.objects.order_by("name")
@@ -60,3 +60,9 @@ def subscriptions_create(request):
                 context["create_error"] = f"Unexpected error while creating subscription. {exc}"
 
     return render(request, "feed/subscriptions_create.html", context=context)
+
+
+def subscriptions_channel_search(request):
+    query = request.GET.get("q", "").strip()
+    results = search_channels(query) if query else []
+    return render(request, "feed/subscriptions_channel_search_results.html", {"results": results})
