@@ -186,7 +186,7 @@ def categorize_videos_advanced(list_of_videos: list[VideoDetails]) -> list[Categ
     print("\nLLM input content:\n", content)
 
     response = client.chat.completions.create(
-        model="gpt-5-nano",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": LLM_SYS_PROMPT_CATEGORIZE},
             {"role": "user", "content": content},
@@ -204,7 +204,7 @@ def categorize_videos_advanced(list_of_videos: list[VideoDetails]) -> list[Categ
         print("\nCategorization JSON snippet (Advanced):\n", json_snippet, "\n")
         results = json.loads(json_snippet)
 
-        # gpt-5.4-nano
+        # gpt-5.4-nano, gpt-4.1-nano
         # results = json.loads(responseText)
         
         for result in results:

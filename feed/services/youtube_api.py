@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 YOUTUBE_VIDEO_URL = "https://www.youtube.com/watch?v={video_id}"
-FETCH_SIZE = 5
+FETCH_SIZE = 3
 
 
 class YouTubeApiError(Exception):
