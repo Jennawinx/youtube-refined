@@ -87,6 +87,7 @@ def home(request):
 
     current_rule    = get_current_time_block(day, hour)
 
+    print()
     print(f"Parsed test_day: {test_day}, test_hour: {test_hour}")
     print(f"Current time: {current_time}, day: {day}, hour: {hour}, active rule: {current_rule.rule_name if current_rule else None}")
     print(f"Current screen: {screen_type}")
