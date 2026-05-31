@@ -175,14 +175,18 @@ def categorize_videos_advanced(list_of_videos: list[VideoDetails]) -> list[Categ
             "text": json.dumps({"id": v.id, "title": v.title}, separators=(",", ":")),
         })
         if v.thumbnail_url:
-
             content.append({
                 "type": "image_url",
-                "image_url": {"url": v.thumbnail_url, "detail": "low"},
+                "image_url": {
+                    "url": v.thumbnail_url, 
+                    "detail": "low"
+                },
             })
 
+    print("\nLLM input content:\n", content)
+
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5-nano",
         messages=[
             {"role": "system", "content": LLM_SYS_PROMPT_CATEGORIZE},
             {"role": "user", "content": content},
