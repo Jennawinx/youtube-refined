@@ -15,7 +15,7 @@ PAGE_SIZE       = 20
 
 
 class ScreenType(StrEnum):
-    RECOMMENDED = "recommended"
+    RECOMMENDED = "feed"
     ALL         = "all"
     CUSTOM      = "custom"
 
@@ -128,7 +128,7 @@ def home(request):
         context["educational_max"]  = search_educational_max
         context["category_tags"]    = search_category_tags
         context["category_tags_str"]= ",".join(search_category_tags)
-        
+
     elif screen_type == ScreenType.RECOMMENDED and current_rule is not None:
         context["energy_min"]       = find_max([search_energy_min, current_rule.min_energy])
         context["energy_max"]       = find_min([search_energy_max, current_rule.max_energy])

@@ -26,7 +26,7 @@
 
       <!-- Current Rule Details -->
       <div>
-        {% if current_rule and screen_type == 'recommended' %}
+        {% if current_rule and screen_type == 'feed' %}
           <details class="rounded-lg border border-outline-variant/25 shadow-sm">
             <summary class="cursor-pointer list-none flex items-center justify-between gap-4 text-sm text-on-surface select-none bg-accent/10 px-4 py-2 border">
               Current rule: {{ current_rule.rule_name }}

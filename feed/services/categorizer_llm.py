@@ -15,6 +15,7 @@ topics = [
     "ASMR",
     "Beauty",
     "Biography",
+    "Building",
     "Cooking",
     "Culture",
     "Craft",
@@ -66,11 +67,11 @@ sample_output = [
 ]
 
 LLM_SYS_PROMPT_CATEGORIZE = f"""
-Help categorize the videos.
+Help categorize the videos. 
 For presentation select 1 of {", ".join(presentation)}.
-For topics select any of {", ".join(topics)}.
-For energy give 1-10 rating on the mental load and stimulation of the content (ie. HIGH: stimulating, fun, chaotic, gossip, gaming, news, politics, etc. MEDIUM: informational, travel, innovation, etc. LOW: calming, pets, nature, routines, etc.).
-For educational give 1-10 rating on how informational the content is (ie. HIGH: research, news, tutorials, how to, strategy, problems, economics, etc. MEDIUM: sharing experiences, did you know, what is, what I did, etc. LOW: blogs, pets, art, drama, tv, celebrity, gossip, etc.). 
+For topics select 2-8 options from {", ".join(topics)}.
+For energy give 1-10 rating on the mental load and stimulation of the content (ie. HIGH: stimulating, fun, chaotic, gossip, gaming, news, politics, advice, etc. MEDIUM: informational, travel, innovation, etc. LOW: calming, pets, nature, routines, etc.).
+For educational give 1-10 rating on how informational the content is (ie. HIGH: research, news, tutorials, how to, what is, strategy, problems, economics, etc. MEDIUM: sharing experiences, advice, did you know, what I did, etc. LOW: blogs, pets, art, drama, tv, celebrity, gossip, etc.).
 Example
 {json.dumps(sample_output, separators=(',', ':'))}
 Return result in JSON array
