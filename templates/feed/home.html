@@ -85,12 +85,15 @@
               <!-- Search -->
               <div class="flex min-w-0 flex-1 items-center gap-2">
                 <input type="search" name="q" value="{{ search_query }}" placeholder="Search videos by title, channel, or description" class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary" />
+                <!-- Metadata to pass to the search -->
                 {% if test_day %}
                   <input type="hidden" name="test_day" value="{{ test_day }}" />
                 {% endif %}
                 {% if test_hour is not None %}
                   <input type="hidden" name="test_hour" value="{{ test_hour }}" />
                 {% endif %}
+                <input type="hidden" name="screen_type" value="{{ screen_type }}" />
+                <!-- Action Buttons -->
                 {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
                 {% include 'components/button.html' with href=home_url|add:'?screen_type='|add:screen_type label='Clear' color='secondary' %}
                 <button type="button" id="filter-toggle" aria-expanded="{% if category_tags %}true{% else %}false{% endif %}" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors border-outline-variant/60 text-on-surface hover:bg-surface-container-low aria-expanded:bg-primary/10 aria-expanded:border-primary aria-expanded:text-primary">
