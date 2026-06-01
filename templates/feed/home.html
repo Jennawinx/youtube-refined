@@ -93,6 +93,10 @@
                 {% endif %}
                 {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
                 {% include 'components/button.html' with href=home_url|add:'?screen_type='|add:screen_type label='Clear' color='secondary' %}
+                <button type="button" id="filter-toggle" aria-expanded="{% if category_tags %}true{% else %}false{% endif %}" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors border-outline-variant/60 text-on-surface hover:bg-surface-container-low aria-expanded:bg-primary/10 aria-expanded:border-primary aria-expanded:text-primary">
+                  <span class="material-symbols-outlined text-[16px]">tune</span>
+                  Filters{% if category_tags %} ({{ category_tags|length }}){% endif %}
+                </button>
               </div>
             </div>
 
@@ -107,10 +111,25 @@
                 {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
               </div>
             </div>
-            {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_str values=all_category_tags placeholder='Filter by category tag...' %}
+
+            <!-- Expandable: Category Tag Filters -->
+            <div id="filter-tags-panel" {% if not category_tags %}class="hidden"{% endif %}>
+              {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_str values=all_category_tags placeholder='Filter by category tag...' %}
+            </div>
           </form>
         </div>
       </div>
+      <script>
+        (function () {
+          var btn = document.getElementById('filter-toggle');
+          var panel = document.getElementById('filter-tags-panel');
+          if (!btn || !panel) return;
+          btn.addEventListener('click', function () {
+            var nowHidden = panel.classList.toggle('hidden');
+            btn.setAttribute('aria-expanded', String(!nowHidden));
+          });
+        })();
+      </script>
     </header>
 
 
