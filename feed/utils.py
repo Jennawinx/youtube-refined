@@ -34,6 +34,13 @@ def parse_week_day(value: Optional[str]) -> Optional[WeekDay]:
     return days.get(day, None)
 
 
+def parse_comma_list(value: Optional[str]) -> list[str]:
+    """Parse a comma-separated list; returns empty list if missing/invalid."""
+    if not value or not value.strip():
+        return []
+    return [t.strip() for t in value.split(",") if t.strip()]
+
+
 def parse_hour(value: Optional[str]) -> Optional[int]:
     """Parse hour value in the inclusive range 0..24."""
     if value is None or value.strip() == "":

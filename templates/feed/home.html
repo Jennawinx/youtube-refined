@@ -62,20 +62,18 @@
           </details>
         {% endif %}
         <div class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm flex flex-col gap-2">
-          <form method="get" class="w-full flex flex-col gap-3">
+          <form method="get" id="home-filter-form" class="w-full flex flex-col gap-3">
             <div class="flex flex-wrap items-center gap-2">
               <div role="tablist" class="tabs tabs-box tabs-sm bg-gray-200/35 rounded-md">
                 {% for screen in screen_options %}
-                  <a role="tab" href="{{ home_url }}?screen_type={{ screen }}&q={{ search_query|urlencode }}&energy_min={{ energy_min|default_if_none:'' }}&energy_max={{ energy_max|default_if_none:'' }}&educational_min={{ educational_min|default_if_none:'' }}&educational_max={{ educational_max|default_if_none:'' }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a>
+                  <a role="tab" href="{{ home_url }}?screen_type={{ screen }}&q={{ search_query|urlencode }}&energy_min={{ energy_min|default_if_none:'' }}&energy_max={{ energy_max|default_if_none:'' }}&educational_min={{ educational_min|default_if_none:'' }}&educational_max={{ educational_max|default_if_none:'' }}&category_tags={{ category_tags_str|urlencode }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a>
                 {% endfor %}
               </div>
               <div class="flex min-w-0 flex-1 items-center gap-2">
                 <input type="search" name="q" value="{{ search_query }}" placeholder="Search videos by title, channel, or description" class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary" />
-                {% comment %}if test day{% endcomment %}
                 {% if test_day %}
                   <input type="hidden" name="test_day" value="{{ test_day }}" />
                 {% endif %}
-                {% comment %}if test hour{% endcomment %}
                 {% if test_hour is not None %}
                   <input type="hidden" name="test_hour" value="{{ test_hour }}" />
                 {% endif %}
@@ -93,6 +91,7 @@
                 {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
               </div>
             </div>
+            {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_str values=all_category_tags placeholder='Filter by category tag...' %}
           </form>
         </div>
       </div>
