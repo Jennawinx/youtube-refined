@@ -68,8 +68,14 @@
 
         <!-- Filters -->
         <div class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm flex flex-col gap-2">
-          <form method="get" id="home-filter-form" class="w-full flex flex-col gap-3">
+          <form id="home-filter-form" method="get" class="w-full flex flex-col gap-3">
             <div class="flex flex-wrap items-center gap-2">
+
+              <!-- Advanced Filter Button -->
+              <button id="advanced-filter-toggle" type="button" aria-expanded="false" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors border-outline-variant/60 text-on-surface hover:bg-surface-container-low aria-expanded:bg-primary/10 aria-expanded:border-primary aria-expanded:text-primary">
+                <span class="material-symbols-outlined text-[16px]">tune</span>
+                Filters{% if category_tags %} ({{ category_tags|length }}){% endif %}
+              </button>
 
               <!-- Tabs -->
               <div role="tablist" class="tabs tabs-box tabs-sm bg-gray-200/35 rounded-md">
@@ -96,10 +102,6 @@
                 <!-- Action Buttons -->
                 {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
                 {% include 'components/button.html' with href=home_url|add:'?screen_type='|add:screen_type label='Clear' color='secondary' %}
-                <button type="button" id="filter-toggle" aria-expanded="{% if category_tags %}true{% else %}false{% endif %}" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors border-outline-variant/60 text-on-surface hover:bg-surface-container-low aria-expanded:bg-primary/10 aria-expanded:border-primary aria-expanded:text-primary">
-                  <span class="material-symbols-outlined text-[16px]">tune</span>
-                  Filters{% if category_tags %} ({{ category_tags|length }}){% endif %}
-                </button>
               </div>
             </div>
 
@@ -116,7 +118,8 @@
             </div>
 
             <!-- Expandable: Category Tag Filters -->
-            <div id="filter-tags-panel" {% if not category_tags %}class="hidden"{% endif %}>
+            <div id="advanced-filter-section" class="hidden">
+              <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Categories</span>
               {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_str values=all_category_tags placeholder='Filter by category tag...' %}
             </div>
           </form>
@@ -124,8 +127,8 @@
       </div>
       <script>
         (function () {
-          var btn = document.getElementById('filter-toggle');
-          var panel = document.getElementById('filter-tags-panel');
+          var btn = document.getElementById('advanced-filter-toggle');
+          var panel = document.getElementById('advanced-filter-section');
           if (!btn || !panel) return;
           btn.addEventListener('click', function () {
             var nowHidden = panel.classList.toggle('hidden');
