@@ -9,7 +9,7 @@ from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_f
 
 _last_server_refresh = None
 
-SERVER_REFRESH_COOLDOWN = timedelta(minutes=2)
+SERVER_REFRESH_COOLDOWN = timedelta(minutes=1)
 CHANNEL_STALE_THRESHOLD = timedelta(days=1)
 CHANNELS_PER_REFRESH = 2
 
