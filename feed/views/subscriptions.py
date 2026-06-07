@@ -2,6 +2,7 @@ from asyncio.log import logger
 from django.shortcuts import redirect, render
 from feed.models import Channel
 from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_feed, search_channels
+from feed.services.llm_channel_topics import determine_channel_topics
 
 def subscriptions(request):
     channels = Channel.objects.order_by("name")
@@ -46,9 +47,12 @@ def subscriptions_create(request):
         else:
             try:    
                 feed = fetch_channel_feed(channel_id)
+                tags = determine_channel_topics(feed.description)
+                
                 channel = Channel.objects.create(
                     channel_id=channel_id,
                     name=feed.name,
+                    category_tags=tags,
                     upload_frequency="biweekly",
                 )
 

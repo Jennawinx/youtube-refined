@@ -4,7 +4,7 @@ from typing import Optional
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from feed.models import FeedRule
-from feed.services.categorizer_llm import topics
+from feed.services.llm_video_categorizer import COMMON_TOPICS
 from feed.services.schedule import cache_rules_schedule, get_rules_schedule
 from feed.utils import parse_rating
 
@@ -104,7 +104,7 @@ def feed_rules(request):
 
 def feed_rules_create(request):
     context = {
-        "available_topics": topics,
+        "available_topics": COMMON_TOPICS,
         "selected_days": [],
         "submit_label": "Create Rule",
         **_rule_form_context_from_data({}),
@@ -134,7 +134,7 @@ def feed_rules_modify(request, rule_id: int):
     rule = get_object_or_404(FeedRule, id=rule_id)
     context = {
         "rule": rule,
-        "available_topics": topics,
+        "available_topics": COMMON_TOPICS,
         "selected_days": [
             day
             for day in [

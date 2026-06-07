@@ -17,7 +17,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from feed.models import Channel, Video
-from feed.services.categorizer_llm import VideoDetails, categorize_videos_advanced
+from feed.services.llm_video_categorizer import VideoDetails, categorize_videos_advanced
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,7 @@ class YouTubeVideo:
 class YouTubeFeed:
     channel_id: str
     name: str
+    description: str
     videos: list[YouTubeVideo]
 
 
@@ -171,14 +172,15 @@ def fetch_channel_feed(channel_id: str) -> YouTubeFeed:
         raise YouTubeApiError(f"Channel not found: {channel_id}")
 
     channel_item = items[0]
-    channel_name = channel_item["snippet"]["title"]
+    snippet = channel_item["snippet"]
     uploads_playlist_id = channel_item["contentDetails"]["relatedPlaylists"]["uploads"]
 
     videos = _fetch_playlist_videos(uploads_playlist_id, api_key)
 
     return YouTubeFeed(
         channel_id=channel_id,
-        name=channel_name,
+        name=snippet.get("title", ""),
+        description=snippet.get("description", ""),
         videos=videos,
     )
 

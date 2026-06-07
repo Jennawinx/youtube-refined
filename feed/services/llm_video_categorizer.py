@@ -5,9 +5,9 @@ from openai import OpenAI
 from youtube_refined.settings import LLM_API_KEY
 
 client = OpenAI(api_key=LLM_API_KEY)
-presentation = ["Vlog", "Music", "Podcast", "Commentary", "Talk show", "Info"]
+PRESENTATION = ["Vlog", "Music", "Podcast", "Commentary", "Talk show", "Info"]
 
-topics = [
+COMMON_TOPICS = [
     "Actors",
     "AI and Machine Learning",
     "Animation",
@@ -73,8 +73,8 @@ sample_output = [
 
 LLM_SYS_PROMPT_CATEGORIZE = f"""
 Help categorize the videos. 
-For presentation select 1 of {", ".join(presentation)}.
-For topics select 2-8 options from {", ".join(topics)}.
+For presentation select 1 of {", ".join(PRESENTATION)}.
+For topics select 2-8 options from {", ".join(COMMON_TOPICS)}.
 For energy give 1-10 rating on the mental load and stimulation of the content (ie. HIGH: stimulating, fun, chaotic, gossip, gaming, news, politics, advice, etc. MEDIUM: informational, travel, innovation, etc. LOW: calming, pets, nature, routines, etc.).
 For educational give 1-10 rating on how informational the content is (ie. HIGH: research, news, tutorials, how to, what is, strategy, problems, economics, etc. MEDIUM: sharing experiences, advice, did you know, what I did, etc. LOW: blogs, pets, art, drama, tv, celebrity, gossip, etc.).
 Example
@@ -131,7 +131,7 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
         instructions=LLM_SYS_PROMPT_CATEGORIZE,
         input=json.dumps(
             [
-                {"id": v.id, "thumbnail_url": v.thumbnail_url, "title": v.title}
+                {"id": v.id, "thumbnail_url": v.thumbnail_url[:255], "title": v.title[:255]}
                 for v in list_of_videos
             ],
             separators=(",", ":"),

@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from feed.models import Video
-from feed.services.categorizer_llm import topics
+from feed.services.llm_video_categorizer import COMMON_TOPICS
 from feed.services.schedule import get_current_time_block
 from feed.utils import find_max, find_min, parse_week_day, parse_hour, parse_rating, parse_comma_list
 
@@ -117,7 +117,7 @@ def home(request):
         "current_rule": current_rule,
         "offset": offset,
         "search_query": search_query,
-        "all_category_tags": topics,
+        "all_category_tags": COMMON_TOPICS,
     }
 
     if screen_type == ScreenType.CUSTOM:
