@@ -1,7 +1,7 @@
 from django.urls import path
 from feed.views.rules import (
-    feed_rules, 
-    feed_rules_create, 
+    feed_rules,
+    feed_rules_create,
     feed_rules_modify
 )
 from feed.views.subscriptions import (
@@ -12,10 +12,14 @@ from feed.views.subscriptions import (
 from feed.views.feed import (
     home,
 )
+from feed.api.channel import (
+    api_refresh_stale_channels,
+)
 
 
 urlpatterns = [
     path("", home, name="home"),
+    path("api/channels/refresh-stale-channels/", api_refresh_stale_channels, name="api_refresh_stale_channels"),
     path("feed-rules/", feed_rules, name="feed_rules"),
     path("feed-rules/create/", feed_rules_create, name="feed_rules_create"),
     path("feed-rules/<int:rule_id>/modify/", feed_rules_modify, name="feed_rules_modify"),

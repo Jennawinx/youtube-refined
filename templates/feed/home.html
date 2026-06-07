@@ -163,4 +163,17 @@
       </section>
     {% endif %}
   </main>
+
+  {% if screen_type == 'feed' %}
+  <script>
+    (function () {
+      var token = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+      fetch('{% url "api_refresh_stale_channels" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': token },
+        keepalive: true,
+      });
+    })();
+  </script>
+  {% endif %}
 {% endblock %}

@@ -98,7 +98,7 @@ def _api_get(endpoint: str, params: dict) -> dict:
     try:
         with urlopen(url, timeout=30, context=ctx) as response:
             response = json.loads(response.read())
-            print(f"\nAPI response for {endpoint}: \n\t{response}")
+            # logger.debug(f"\nAPI response for {endpoint}: \n\t{response}")
             return response
     except Exception as exc:
         logger.exception("YouTube API request failed: %s", endpoint)
@@ -201,7 +201,7 @@ def refresh_channel_with_feed(channel: Channel, feed: YouTubeFeed) -> int:
     )
     createdCount = 0
 
-    print(f"Found {len(new_videos)} new videos for channel {channel.name}")
+    logger.info(f"Found {len(new_videos)} new videos for channel {channel.name}")
 
     for i in range(len(new_videos)):
         video = new_videos[i]
