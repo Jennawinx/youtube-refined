@@ -1,21 +1,38 @@
 from asyncio.log import logger
+from datetime import timedelta
 from django.http import JsonResponse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from feed.models import Channel
 from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_feed
 
-'''
-    Update the 2 oldest channels
-'''
+_last_server_refresh = None
+
+SERVER_REFRESH_COOLDOWN = timedelta(minutes=2)
+CHANNEL_STALE_THRESHOLD = timedelta(days=1)
+CHANNELS_PER_REFRESH = 2
+
 @require_POST
 def api_refresh_stale_channels(request):
+    global _last_server_refresh
+
+    now = timezone.now()
+
+    if _last_server_refresh is not None and (now - _last_server_refresh) < SERVER_REFRESH_COOLDOWN:
+        return JsonResponse({"refreshed": [], "skipped": "cooldown"})
+
+    stale_cutoff = now - CHANNEL_STALE_THRESHOLD
     stale_channels = list(
-        Channel.objects.order_by("last_updated")[:2]
+        Channel.objects
+        .filter(last_updated__lt=stale_cutoff)
+        .order_by("last_updated")[:CHANNELS_PER_REFRESH]
     )
 
     if not stale_channels:
-        return JsonResponse({"refreshed": []})
+        return JsonResponse({"refreshed": [], "skipped": "no stale channels"})
+
+    _last_server_refresh = now
 
     results = []
     for channel in stale_channels:
