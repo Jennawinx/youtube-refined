@@ -8,16 +8,21 @@ from feed.models import Channel
 from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_feed
 
 _last_server_refresh = None
+_refresh_paused_until = None
 
 SERVER_REFRESH_COOLDOWN = timedelta(minutes=1)
 CHANNEL_STALE_THRESHOLD = timedelta(days=1)
 CHANNELS_PER_REFRESH = 2
+PAUSE_DURATION_WHEN_NO_STALE = timedelta(hours=2)
 
 @require_POST
 def api_refresh_stale_channels(request):
-    global _last_server_refresh
+    global _last_server_refresh, _refresh_paused_until
 
     now = timezone.now()
+
+    if _refresh_paused_until is not None and now < _refresh_paused_until:
+        return JsonResponse({"refreshed": [], "skipped": "paused"})
 
     if _last_server_refresh is not None and (now - _last_server_refresh) < SERVER_REFRESH_COOLDOWN:
         return JsonResponse({"refreshed": [], "skipped": "cooldown"})
@@ -30,6 +35,7 @@ def api_refresh_stale_channels(request):
     )
 
     if not stale_channels:
+        _refresh_paused_until = now + PAUSE_DURATION_WHEN_NO_STALE
         return JsonResponse({"refreshed": [], "skipped": "no stale channels"})
 
     _last_server_refresh = now
