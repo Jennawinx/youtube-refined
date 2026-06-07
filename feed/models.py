@@ -8,6 +8,7 @@ class Channel(models.Model):
     channel_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     upload_frequency = models.CharField(max_length=50, default="biweekly")
+    category_tags = models.JSONField(blank=True, default=list)
     last_updated = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

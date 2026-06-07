@@ -36,10 +36,14 @@
                         <h2 class="text-base font-bold leading-tight">{{ channel.name }}</h2>
                         {% comment %} <p class="text-xs text-on-surface-variant/70 mt-1">{{ channel.channel_id }}</p> {% endcomment %}
                     </div>
-                    <span class="rounded-full bg-secondary-container px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-on-secondary-container">
-                        {{ channel.upload_frequency }}
-                    </span>
                 </div>
+                {% if channel.category_tags %}
+                <div class="flex flex-wrap gap-1 mt-2">
+                    {% for tag in channel.category_tags %}
+                        <span class="badge badge-primary badge-xs">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 <div class="mt-4 flex items-center justify-between text-xs text-on-surface-variant/70">
                     <span>{{ channel.videos.count }} videos</span>
                     <span>
