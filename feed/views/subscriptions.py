@@ -2,7 +2,7 @@ from asyncio.log import logger
 from django.shortcuts import redirect, render
 from feed.models import Channel
 from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_feed, search_channels
-from feed.services.llm_channel_topics import determine_channel_topics
+from feed.services.llm_channel_topic_picker import determine_channel_topics
 
 def subscriptions(request):
     channels = Channel.objects.order_by("name")
