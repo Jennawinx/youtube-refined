@@ -5,17 +5,22 @@ from openai import OpenAI
 from youtube_refined.settings import LLM_API_KEY
 
 client = OpenAI(api_key=LLM_API_KEY)
-presentation = ["Vlog", "Music", "Podcast", "Commentary", "Talk show", "Info"]
+PRESENTATION = ["Vlog", "Music", "Podcast", "Commentary", "Talk show", "Info"]
 
-topics = [
+COMMON_TOPICS = [
     "Actors",
+    "AI and Machine Learning",
     "Animation",
     "Anime and Manga",
     "Art",
     "ASMR",
     "Beauty",
     "Biography",
+    "Building",
+    "Business",
+    "Cafe",
     "Cooking",
+    "Celebrity",
     "Culture",
     "Craft",
     "Day in the life",
@@ -27,12 +32,14 @@ topics = [
     "Finance and Investing",
     "Fitness",
     "Food",
-    "Gaming",
+    "Game",
+    "Health",
     "Innovation",
     "Interior Design",
     "Kpop",
     "Language",
     "Living",
+    "Math",
     "Mental Health",
     "Morning Routine",
     "Motivation",
@@ -48,7 +55,6 @@ topics = [
     "Relaxation",
     "Science",
     "Shopping",
-    "Singers",
     "Software Development",
     "Sports",
     "Technology",
@@ -66,11 +72,11 @@ sample_output = [
 ]
 
 LLM_SYS_PROMPT_CATEGORIZE = f"""
-Help categorize the videos.
-For presentation select 1 of {", ".join(presentation)}.
-For topics select any of {", ".join(topics)}.
-For energy give 1-10 rating on the mental load and stimulation of the content (ie. HIGH: stimulating, fun, chaotic, gossip, gaming, news, politics, etc. MEDIUM: informational, travel, innovation, etc. LOW: calming, pets, nature, routines, etc.).
-For educational give 1-10 rating on how informational the content is (ie. HIGH: research, news, tutorials, how to, strategy, problems, economics, etc. MEDIUM: sharing experiences, did you know, what is, what I did, etc. LOW: blogs, pets, art, drama, tv, celebrity, gossip, etc.). 
+Help categorize the videos. 
+For presentation select 1 of {", ".join(PRESENTATION)}.
+For topics select 2-8 options from {", ".join(COMMON_TOPICS)}.
+For energy give 1-10 rating on the mental load and stimulation of the content (ie. HIGH: stimulating, fun, chaotic, gossip, gaming, news, politics, advice, etc. MEDIUM: informational, travel, innovation, etc. LOW: calming, pets, nature, routines, etc.).
+For educational give 1-10 rating on how informational the content is (ie. HIGH: research, news, tutorials, how to, what is, strategy, problems, economics, etc. MEDIUM: sharing experiences, advice, did you know, what I did, etc. LOW: blogs, pets, art, drama, tv, celebrity, gossip, etc.).
 Example
 {json.dumps(sample_output, separators=(',', ':'))}
 Return result in JSON array
@@ -114,8 +120,6 @@ class CategorizedVideo:
     educational: int = 0
 
 
-# TODO: create batches, download thumbnails and resize them until width is 150px then give it to gpt.
-
 def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
 
     if len(list_of_videos) == 0:
@@ -127,14 +131,14 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
         instructions=LLM_SYS_PROMPT_CATEGORIZE,
         input=json.dumps(
             [
-                {"id": v.id, "thumbnail_url": v.thumbnail_url, "title": v.title}
+                {"id": v.id, "thumbnail_url": v.thumbnail_url[:255], "title": v.title[:255]}
                 for v in list_of_videos
             ],
             separators=(",", ":"),
         ),
         # text={"format": {"type": "json_object"}},
         reasoning={},
-        max_output_tokens=1024,
+        max_output_tokens=2048,
         store=True,
         include=["web_search_call.action.sources"],
     )
@@ -146,7 +150,7 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
 
     try:
         json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
-        print(json_snippet)
+        print("\nCategorization JSON snippet (Basic):\n", json_snippet, "\n")
         results = json.loads(json_snippet)
         for result in results:
             categorizedVideos.append(
@@ -161,6 +165,67 @@ def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVid
     except Exception as exc:
         print(f"Error parsing categorization response: {exc}")
         print(f"Raw response content: {response.output[0].content[0].text}")
+        raise exc
+
+    return categorizedVideos
+
+
+def categorize_videos_advanced(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+    if len(list_of_videos) == 0:
+        return []
+
+    content = []
+    for v in list_of_videos:
+        content.append({
+            "type": "text",
+            "text": json.dumps({"id": v.id, "title": v.title}, separators=(",", ":")),
+        })
+        if v.thumbnail_url:
+            content.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": v.thumbnail_url, 
+                    "detail": "low"
+                },
+            })
+
+    print("\nLLM input content:\n", content)
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": LLM_SYS_PROMPT_CATEGORIZE},
+            {"role": "user", "content": content},
+        ],
+        max_completion_tokens=min(3200 * len(list_of_videos), 35000),
+        store=True,
+    )
+
+    categorizedVideos: list[CategorizedVideo] = []
+    responseText = response.choices[0].message.content
+
+    try:
+        # gpt-4o-mini
+        json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
+        print("\nCategorization JSON snippet (Advanced):\n", json_snippet, "\n")
+        results = json.loads(json_snippet)
+
+        # gpt-5.4-nano, gpt-4.1-nano
+        # results = json.loads(responseText)
+        
+        for result in results:
+            categorizedVideos.append(
+                CategorizedVideo(
+                    presentation=result.get("presentation", None),
+                    topics=result.get("topics", []),
+                    energy=result.get("energy", 0),
+                    educational=result.get("educational", 0),
+                )
+            )
+
+    except Exception as exc:
+        print(f"Error parsing categorization response: {exc}")
+        print(f"Raw response content: {responseText}")
         raise exc
 
     return categorizedVideos

@@ -5,8 +5,9 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from feed.models import Video
+from feed.services.llm_video_categorizer import COMMON_TOPICS
 from feed.services.schedule import get_current_time_block
-from feed.utils import find_max, find_min, parse_week_day, parse_hour, parse_rating
+from feed.utils import find_max, find_min, parse_week_day, parse_hour, parse_rating, parse_comma_list
 
 
 TEST_CHANNEL_ID = "UCSzHO_V894KyTDw3UgZS7gg"
@@ -14,20 +15,21 @@ PAGE_SIZE       = 20
 
 
 class ScreenType(StrEnum):
-    RECOMMENDED = "recommended"
+    RECOMMENDED = "feed"
     ALL         = "all"
     CUSTOM      = "custom"
 
 
 def get_video_page(
-    offset:             int,
-    search_query:       str = "",
-    energy_min:         Optional[int] = None,
-    energy_max:         Optional[int] = None,
-    educational_min:    Optional[int] = None,
-    educational_max:    Optional[int] = None,
+    offset:                 int,
+    search_query:           str = "",
+    energy_min:             Optional[int] = None,
+    energy_max:             Optional[int] = None,
+    educational_min:        Optional[int] = None,
+    educational_max:        Optional[int] = None,
+    category_tags:          list[str] = [],
 ) -> tuple[list[Video], bool, int]:
-    
+
     video_qs = Video.objects.select_related("channel")
     if search_query:
         video_qs = video_qs.filter(
@@ -47,6 +49,12 @@ def get_video_page(
     if educational_max is not None:
         video_qs = video_qs.filter(educational__lte=educational_max)
 
+    if category_tags:
+        category_tag_q = Q()
+        for tag in category_tags:
+            category_tag_q |= Q(category_tags__icontains=tag)
+        video_qs = video_qs.filter(category_tag_q)
+
     videos_window = list(
         video_qs.order_by("-publish_date")[offset : offset + PAGE_SIZE + 1]
     )
@@ -59,11 +67,11 @@ def get_video_page(
 
 
 # TODO: custom maybe some saved filter from the db
-def parse_screen_type (value: Optional[str]) -> str:
+def parse_screen_type(value: Optional[str]) -> str:
     """Parse screen type from GET param; defaults to RECOMMENDED if missing/invalid."""
     if value is None:
         return ScreenType.RECOMMENDED
-    
+
     mode = value.strip().lower()
     return mode if mode in {ScreenType.RECOMMENDED, ScreenType.ALL, ScreenType.CUSTOM} else ScreenType.RECOMMENDED
 
@@ -87,15 +95,17 @@ def home(request):
 
     current_rule    = get_current_time_block(day, hour)
 
-    print(f"Parsed test_day: {test_day}, test_hour: {test_hour}")
-    print(f"Current time: {current_time}, day: {day}, hour: {hour}, active rule: {current_rule.rule_name if current_rule else None}")
     print(f"Current screen: {screen_type}")
+    print(f"Current time: {current_time}, day: {day}, hour: {hour}, active rule: {current_rule.rule_name if current_rule else None}")
+    print(f"Parsed test_day: {test_day}, test_hour: {test_hour}")
+    print()
 
-    search_query            = request.GET.get("q", "").strip()
-    search_energy_min       = parse_rating(request.GET.get("energy_min"))
-    search_energy_max       = parse_rating(request.GET.get("energy_max"))
-    search_educational_min  = parse_rating(request.GET.get("educational_min"))
-    search_educational_max  = parse_rating(request.GET.get("educational_max"))
+    search_query                = request.GET.get("q", "").strip()
+    search_energy_min           = parse_rating(request.GET.get("energy_min"))
+    search_energy_max           = parse_rating(request.GET.get("energy_max"))
+    search_educational_min      = parse_rating(request.GET.get("educational_min"))
+    search_educational_max      = parse_rating(request.GET.get("educational_max"))
+    search_category_tags        = parse_comma_list(request.GET.get("category_tags"))
 
     context = {
         "day": day,
@@ -107,6 +117,7 @@ def home(request):
         "current_rule": current_rule,
         "offset": offset,
         "search_query": search_query,
+        "all_category_tags": COMMON_TOPICS,
     }
 
     if screen_type == ScreenType.CUSTOM:
@@ -115,24 +126,33 @@ def home(request):
         context["energy_max"]       = search_energy_max
         context["educational_min"]  = search_educational_min
         context["educational_max"]  = search_educational_max
+        context["category_tags"]    = search_category_tags
+        context["category_tags_str"]= ",".join(search_category_tags)
+
     elif screen_type == ScreenType.RECOMMENDED and current_rule is not None:
         context["energy_min"]       = find_max([search_energy_min, current_rule.min_energy])
         context["energy_max"]       = find_min([search_energy_max, current_rule.max_energy])
         context["educational_min"]  = find_max([search_educational_min, current_rule.min_educational])
         context["educational_max"]  = find_min([search_educational_max, current_rule.max_educational])
+        context["category_tags"]    = list(set(current_rule.category_tags + search_category_tags))
+        context["category_tags_str"]= ",".join(context["category_tags"])
+
     else: # ScreenType.ALL
         context["energy_min"]       = search_energy_min
         context["energy_max"]       = search_energy_max
         context["educational_min"]  = search_educational_min
         context["educational_max"]  = search_educational_max
+        context["category_tags"]    = search_category_tags
+        context["category_tags_str"]= ",".join(search_category_tags)
 
     videos, has_more, next_offset = get_video_page(
-        offset          = context["offset"],
-        search_query    = context["search_query"],
-        energy_min      = context["energy_min"],
-        energy_max      = context["energy_max"],
-        educational_min = context["educational_min"],
-        educational_max = context["educational_max"],
+        offset                  = context["offset"],
+        search_query            = context["search_query"],
+        energy_min              = context["energy_min"],
+        energy_max              = context["energy_max"],
+        educational_min         = context["educational_min"],
+        educational_max         = context["educational_max"],
+        category_tags  = context["category_tags"],
     )
 
     context.update({
@@ -140,8 +160,8 @@ def home(request):
         "has_more":     has_more,
         "next_offset":  next_offset,
     })
-    
+
     if offset == 0:
         return render(request, "feed/home.html", context=context)
-    else: 
+    else:
         return render(request, "feed/home_more.html", context=context)

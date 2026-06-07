@@ -9,6 +9,7 @@
     {% url 'home' as home_url %}
     {% url 'subscriptions' as subscriptions_url %}
 
+
     <!-- Header -->
     <header class="flex flex-col gap-4">
       <div class="flex flex-wrap items-start justify-between gap-4">
@@ -22,8 +23,10 @@
         </div>
       </div>
 
+
+      <!-- Current Rule Details -->
       <div>
-        {% if current_rule %}
+        {% if current_rule and screen_type == 'feed' %}
           <details class="rounded-lg border border-outline-variant/25 shadow-sm">
             <summary class="cursor-pointer list-none flex items-center justify-between gap-4 text-sm text-on-surface select-none bg-accent/10 px-4 py-2 border">
               Current rule: {{ current_rule.rule_name }}
@@ -61,28 +64,48 @@
             </div>
           </details>
         {% endif %}
+
+
+        <!-- Filters -->
         <div class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm flex flex-col gap-2">
-          <form method="get" class="w-full flex flex-col gap-3">
+          <form id="home-filter-form" method="get" class="w-full flex flex-col gap-3">
             <div class="flex flex-wrap items-center gap-2">
+
+              <!-- Advanced Filter Button -->
+              <button id="advanced-filter-toggle" type="button" aria-expanded="false" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors border-outline-variant/60 text-on-surface hover:bg-surface-container-low aria-expanded:bg-primary/10 aria-expanded:border-primary aria-expanded:text-primary">
+                <span class="material-symbols-outlined text-[16px]">tune</span>
+                Filters{% if category_tags %} ({{ category_tags|length }}){% endif %}
+              </button>
+
+              <!-- Tabs -->
               <div role="tablist" class="tabs tabs-box tabs-sm bg-gray-200/35 rounded-md">
                 {% for screen in screen_options %}
-                  <a role="tab" href="{{ home_url }}?screen_type={{ screen }}&q={{ search_query|urlencode }}&energy_min={{ energy_min|default_if_none:'' }}&energy_max={{ energy_max|default_if_none:'' }}&educational_min={{ educational_min|default_if_none:'' }}&educational_max={{ educational_max|default_if_none:'' }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a>
+                  <!-- Keep filters when switching tabs -->
+                  {% comment %} <a role="tab" href="{{ home_url }}?screen_type={{ screen }}&q={{ search_query|urlencode }}&energy_min={{ energy_min|default_if_none:'' }}&energy_max={{ energy_max|default_if_none:'' }}&educational_min={{ educational_min|default_if_none:'' }}&educational_max={{ educational_max|default_if_none:'' }}&category_tags={{ category_tags_str|urlencode }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a> {% endcomment %}
+                  
+                  <!-- Clear filters when switching tabs -->
+                  <a role="tab" href="{{ home_url }}?screen_type={{ screen }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a>
                 {% endfor %}
               </div>
+
+              <!-- Search -->
               <div class="flex min-w-0 flex-1 items-center gap-2">
                 <input type="search" name="q" value="{{ search_query }}" placeholder="Search videos by title, channel, or description" class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary" />
-                {% comment %}if test day{% endcomment %}
+                <!-- Metadata to pass to the search -->
                 {% if test_day %}
                   <input type="hidden" name="test_day" value="{{ test_day }}" />
                 {% endif %}
-                {% comment %}if test hour{% endcomment %}
                 {% if test_hour is not None %}
                   <input type="hidden" name="test_hour" value="{{ test_hour }}" />
                 {% endif %}
+                <input type="hidden" name="screen_type" value="{{ screen_type }}" />
+                <!-- Action Buttons -->
                 {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
                 {% include 'components/button.html' with href=home_url|add:'?screen_type='|add:screen_type label='Clear' color='secondary' %}
               </div>
             </div>
+
+            <!-- Advanced Filters -->
             <div class="flex flex-wrap items-center gap-2 justify-center">
               <div class="flex items-center gap-3">
                 <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Mental energy</span>
@@ -93,10 +116,28 @@
                 {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
               </div>
             </div>
+
+            <!-- Expandable: Category Tag Filters -->
+            <div id="advanced-filter-section" class="hidden">
+              <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Categories</span>
+              {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_str values=all_category_tags placeholder='Filter by category tag...' %}
+            </div>
           </form>
         </div>
       </div>
+      <script>
+        (function () {
+          var btn = document.getElementById('advanced-filter-toggle');
+          var panel = document.getElementById('advanced-filter-section');
+          if (!btn || !panel) return;
+          btn.addEventListener('click', function () {
+            var nowHidden = panel.classList.toggle('hidden');
+            btn.setAttribute('aria-expanded', String(!nowHidden));
+          });
+        })();
+      </script>
     </header>
+
 
     <!-- Video Grid -->
     {% if videos %}
@@ -122,4 +163,17 @@
       </section>
     {% endif %}
   </main>
+
+  {% include 'components/modal_youtube.html' %}
+
+  <script>
+    (function () {
+      var token = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+      fetch('{% url "api_refresh_stale_channels" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': token },
+        keepalive: true,
+      });
+    })();
+  </script>
 {% endblock %}

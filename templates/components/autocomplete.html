@@ -1,28 +1,38 @@
 {% with field_name=name|default:'items' %}
-<div class="flex flex-col gap-0" data-autocomplete>
+<div 
+    data-autocomplete 
+    class="flex flex-col gap-0"
+>
     <input
+        data-autocomplete-output
         type="hidden"
         name="{{ field_name }}"
         value="{{ value|default:'' }}"
-        data-autocomplete-output
     />
 
-    <div class="min-h-11 rounded-lg border border-outline-variant/60 {{ tags_bg_class|default:'bg-surface-container-low' }} px-2 py-2 flex flex-wrap items-center gap-2" data-autocomplete-tags></div>
+    <div 
+        data-autocomplete-tags 
+        class="min-h-11 rounded-lg border border-outline-variant/60 {{ tags_bg_class|default:'bg-surface-container-low' }} px-2 py-2 flex flex-wrap items-center gap-2"
+    >
+    </div>
 
     <input
+        data-autocomplete-input
         type="text"
         value=""
         placeholder="{{ placeholder|default:'Type and press Enter, comma, or choose from suggestions' }}"
         class="w-full rounded-lg border border-outline-variant/60 {{ input_bg_class|default:'bg-surface' }} px-3 py-2 text-sm text-on-surface outline-none focus:border-primary"
-        data-autocomplete-input
     />
 
-    <div class="hidden rounded-lg border border-outline-variant/60 {{ suggestions_bg_class|default:'bg-surface' }} shadow-sm p-2 max-h-40 overflow-auto" data-autocomplete-suggestions>
+    <div 
+        data-autocomplete-suggestions 
+        class="hidden rounded-lg border border-outline-variant/60 {{ suggestions_bg_class|default:'bg-surface' }} shadow-sm p-2 max-h-40 overflow-auto"
+    >
         {% for option in values %}
             <button
+                data-autocomplete-option="{{ option }}"
                 type="button"
                 class="w-full text-left px-2 py-1 rounded text-sm text-on-surface-variant hover:bg-surface-container"
-                data-autocomplete-option="{{ option }}"
             >
                 {{ option }}
             </button>
@@ -55,8 +65,8 @@
 
         var output = root.querySelector("[data-autocomplete-output]");
         var input = root.querySelector("[data-autocomplete-input]");
-        var tagsEl = root.querySelector("[data-autocomplete-tags]");
-        var suggestionsEl = root.querySelector("[data-autocomplete-suggestions]");
+        var tagsElement = root.querySelector("[data-autocomplete-tags]");
+        var suggestionsElement = root.querySelector("[data-autocomplete-suggestions]");
         var suggestionButtons = Array.from(root.querySelectorAll("[data-autocomplete-option]"));
 
         var selected = parseCommaSeparated(output.value);
@@ -66,13 +76,15 @@
         }
 
         function renderTags() {
-            tagsEl.innerHTML = "";
+            tagsElement.innerHTML = "";
             if (!selected.length) {
-                var emptyState = document.createElement("span");
-                emptyState.className = "text-xs text-on-surface-variant/70";
-                emptyState.textContent = "No items selected";
-                tagsEl.appendChild(emptyState);
-                return;
+                // var emptyState = document.createElement("span");
+                // emptyState.className = "text-xs text-on-surface-variant/70";
+                // emptyState.textContent = "No items selected";
+                // tagsElement.appendChild(emptyState);
+                tagsElement.style.display = "none";
+            } else {
+                tagsElement.style.display = "block";
             }
 
             selected.forEach(function (tag) {
@@ -98,7 +110,7 @@
 
                 chip.appendChild(text);
                 chip.appendChild(remove);
-                tagsEl.appendChild(chip);
+                tagsElement.appendChild(chip);
             });
         }
 
@@ -137,7 +149,7 @@
                 if (show) visibleCount += 1;
             });
 
-            suggestionsEl.classList.toggle("hidden", visibleCount === 0);
+            suggestionsElement.classList.toggle("hidden", visibleCount === 0);
         }
 
         input.addEventListener("input", function () {
@@ -157,7 +169,7 @@
 
         input.addEventListener("blur", function () {
             setTimeout(function () {
-                suggestionsEl.classList.add("hidden");
+                suggestionsElement.classList.add("hidden");
             }, 100);
         });
 
@@ -178,7 +190,7 @@
 
         syncOutput();
         renderTags();
-        renderSuggestions("");
+        // renderSuggestions("");
     }
 
     document.querySelectorAll("[data-autocomplete]").forEach(initAutocomplete);

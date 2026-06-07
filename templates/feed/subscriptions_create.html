@@ -9,7 +9,7 @@
                 <a href="{% url 'subscriptions' %}" class="text-sm font-semibold text-primary hover:underline">Back to Subscriptions</a>
                 <div>
                     <h1 class="text-4xl font-extrabold tracking-tight">Add Subscription</h1>
-                    <p class="text-sm text-on-surface-variant/70 mt-1">Enter a YouTube channel ID to store it with the default name and refresh cadence.</p>
+                    <p class="text-sm text-on-surface-variant/70 mt-1">Search for a channel by name, then confirm the channel ID below.</p>
                 </div>
             </header>
 
@@ -19,7 +19,35 @@
                 </div>
             {% endif %}
 
-            <section class="rounded-2xl border border-outline-variant/40 bg-surface px-5 py-6 shadow-sm sm:px-6">
+            <section class="rounded-2xl border border-outline-variant/40 bg-surface px-5 py-6 shadow-sm sm:px-6 flex flex-col gap-5">
+
+                <!-- Channel search -->
+                <div class="flex flex-col gap-2">
+                    <label for="channel-search-query" class="text-sm font-semibold text-on-surface">Search by channel name</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[18px] pointer-events-none">search</span>
+                        <input
+                            id="channel-search-query"
+                            type="text"
+                            placeholder="e.g. Fireship"
+                            autocomplete="off"
+                            hx-get="{% url 'subscriptions_channel_search' %}"
+                            hx-trigger="input delay:400ms"
+                            hx-target="#channel-search-results"
+                            hx-include="[name='q']"
+                            name="q"
+                            class="w-full rounded-lg border border-outline-variant/60 bg-surface-container-low pl-9 pr-4 py-3 text-base font-medium text-on-surface outline-none transition focus:border-primary"
+                        />
+                    </div>
+                    <div
+                        id="channel-search-results"
+                        class="rounded-lg border border-outline-variant/40 bg-surface overflow-hidden empty:hidden"
+                    ></div>
+                </div>
+
+                <div class="border-t border-outline-variant/30"></div>
+
+                <!-- Create form -->
                 <form method="post" class="flex flex-col gap-4">
                     {% csrf_token %}
                     <label for="channel_id" class="flex flex-col gap-2 text-sm font-semibold text-on-surface">
@@ -36,7 +64,7 @@
                     </label>
 
                     <p class="text-sm text-on-surface-variant/70">
-                        New subscriptions start with name <strong>Unknown</strong> and frequency <strong>biweekly</strong>.
+                        New subscriptions start with frequency <strong>biweekly</strong>.
                     </p>
 
                     <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
