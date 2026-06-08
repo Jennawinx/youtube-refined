@@ -7,6 +7,7 @@ from feed.views.rules import (
 from feed.views.subscriptions import (
     subscriptions,
     subscriptions_create,
+    subscriptions_delete,
     subscriptions_channel_search,
 )
 from feed.views.feed import (
@@ -25,5 +26,6 @@ urlpatterns = [
     path("feed-rules/<int:rule_id>/modify/", feed_rules_modify, name="feed_rules_modify"),
     path("subscriptions/", subscriptions, name="subscriptions"),
     path("subscriptions/create/", subscriptions_create, name="subscriptions_create"),
+    path("subscriptions/<str:channel_id>/delete/", subscriptions_delete, name="subscriptions_delete"),
     path("subscriptions/channel-search/", subscriptions_channel_search, name="subscriptions_channel_search"),
 ]

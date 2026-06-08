@@ -57,11 +57,17 @@
                             {% endif %}
                         </td>
                         <td class="px-5 py-2 text-right">
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="channel_id" value="{{ channel.channel_id }}" />
-                                {% include "components/button.html" with label="Refresh" size="sm" %}
-                            </form>
+                            <div class="flex items-center justify-end gap-2">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="channel_id" value="{{ channel.channel_id }}" />
+                                    {% include "components/button.html" with label="Refresh" size="sm" %}
+                                </form>
+                                <form method="post" action="{% url 'subscriptions_delete' channel.channel_id %}">
+                                    {% csrf_token %}
+                                    {% include "components/button.html" with label="Remove" size="sm" color="error" %}
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

@@ -66,6 +66,12 @@ def subscriptions_create(request):
     return render(request, "feed/subscriptions_create.html", context=context)
 
 
+def subscriptions_delete(request, channel_id):
+    if request.method == "POST":
+        Channel.objects.filter(channel_id=channel_id).delete()
+    return redirect("subscriptions")
+
+
 def subscriptions_channel_search(request):
     query = request.GET.get("q", "").strip()
     results = search_channels(query) if query else []
