@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {{ block.super }}
+{% endblock %}
+
+{% block content %}
+  <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-6">
+    <header class="flex items-center justify-between gap-4 flex-wrap">
+        {% block header %}{% endblock %}
+        {% block header_actions %}{% endblock %}
+    </header>
+    {% include 'components/banner_success.html' with message=success_message %}
+    {% include 'components/banner_error.html' with message=error_message %}
+    {% block page_content %}{% endblock %}
+  </main>
+{% endblock %}

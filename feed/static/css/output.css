@@ -2391,6 +2391,18 @@
       --badge-fg: var(--color-primary-content);
     }
   }
+  .btn-primary {
+    @layer daisyui.l1.l2.l3 {
+      --btn-color: var(--color-primary);
+      --btn-fg: var(--color-primary-content);
+    }
+  }
+  .btn-secondary {
+    @layer daisyui.l1.l2.l3 {
+      --btn-color: var(--color-secondary);
+      --btn-fg: var(--color-secondary-content);
+    }
+  }
   .outline-none {
     --tw-outline-style: none;
     outline-style: none;
