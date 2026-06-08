@@ -69,13 +69,12 @@ def _parse_duration(iso_duration: str) -> int:
 
 
 def search_channels(query: str) -> list[YouTubeChannelResult]:
-    api_key = settings.YOUTUBE_API_KEY
     data = _api_get("search", {
         "part": "snippet",
         "type": "channel",
         "q": query,
         "maxResults": 5,
-        "key": api_key,
+        "key": settings.YOUTUBE_API_KEY,
     })
     results = []
     for item in data.get("items", []):
@@ -106,11 +105,11 @@ def _api_get(endpoint: str, params: dict) -> dict:
         raise YouTubeApiError(f"YouTube API request failed: {endpoint}") from exc
 
 
-def _fetch_video_details(video_ids: list[str], api_key: str) -> list[YouTubeVideo]:
+def _fetch_video_details(video_ids: list[str]) -> list[YouTubeVideo]:
     video_data = _api_get("videos", {
         "part": "snippet,contentDetails",
         "id": ",".join(video_ids),
-        "key": api_key,
+        "key": settings.YOUTUBE_API_KEY,
     })
 
     videos = []
@@ -138,12 +137,12 @@ def _fetch_video_details(video_ids: list[str], api_key: str) -> list[YouTubeVide
     return videos
 
 
-def _fetch_playlist_videos(playlist_id: str, api_key: str) -> list[YouTubeVideo]:
+def _fetch_playlist_videos(playlist_id: str, fetch_size: int = FETCH_SIZE) -> list[YouTubeVideo]:
     playlist_data = _api_get("playlistItems", {
         "part": "snippet",
         "playlistId": playlist_id,
-        "maxResults": FETCH_SIZE,
-        "key": api_key,
+        "maxResults": fetch_size * 2,
+        "key": settings.YOUTUBE_API_KEY,
     })
 
     video_ids = [
@@ -154,17 +153,18 @@ def _fetch_playlist_videos(playlist_id: str, api_key: str) -> list[YouTubeVideo]
 
     if not video_ids:
         return []
+    
+    videos = _fetch_video_details(video_ids)
 
-    return _fetch_video_details(video_ids, api_key)
+    return [v for v in videos if v.duration_seconds > 180][:fetch_size]
 
 
 def fetch_channel_feed(channel_id: str) -> YouTubeFeed:
-    api_key = settings.YOUTUBE_API_KEY
 
     channel_data = _api_get("channels", {
         "part": "snippet,contentDetails",
         "id": channel_id,
-        "key": api_key,
+        "key": settings.YOUTUBE_API_KEY,
     })
 
     items = channel_data.get("items", [])
@@ -175,7 +175,7 @@ def fetch_channel_feed(channel_id: str) -> YouTubeFeed:
     snippet = channel_item["snippet"]
     uploads_playlist_id = channel_item["contentDetails"]["relatedPlaylists"]["uploads"]
 
-    videos = _fetch_playlist_videos(uploads_playlist_id, api_key)
+    videos = _fetch_playlist_videos(uploads_playlist_id)
 
     return YouTubeFeed(
         channel_id=channel_id,
@@ -187,14 +187,12 @@ def fetch_channel_feed(channel_id: str) -> YouTubeFeed:
 
 def refresh_channel_with_feed(channel: Channel, feed: YouTubeFeed) -> int:
     # Filter out shorts
-    videos_list = [
-        v for v in feed.videos if not ("/shorts/" in v.url.lower()) and (v.duration_seconds > 180)
-    ]
-    video_ids = {v.video_id for v in videos_list}
+    video_list = feed.videos
+    video_ids = {v.video_id for v in video_list}
     existing_video_ids = set(
         Video.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True)
     )
-    new_videos = [v for v in videos_list if v.video_id not in existing_video_ids]
+    new_videos = [v for v in video_list if v.video_id not in existing_video_ids]
     categorized_videos = categorize_videos_advanced(
         [
             VideoDetails(id=v.video_id, thumbnail_url=v.thumbnail_url_low_res, title=v.title)
