@@ -15,7 +15,7 @@ def subscriptions(request):
         selected_channel_id = request.POST.get("channel_id", "").strip()
         channel = Channel.objects.filter(channel_id=selected_channel_id).first()
         if channel is None:
-            context["refetch_error"] = (
+            context["error_message"] = (
                 f"Channel {selected_channel_id or '(none)'} was not found in the database."
             )
         else:
@@ -23,12 +23,12 @@ def subscriptions(request):
                 feed = fetch_channel_feed(selected_channel_id)
                 created_count = refresh_channel_with_feed(channel, feed)
 
-                context["refetch_success"] = (
+                context["success_message"] = (
                     f"Refetched {channel.name}: created={created_count}"
                 )
             except Exception as exc:
                 logger.exception("Refresh channel request failed for channel_id=%s. %s", channel.channel_id, exc)
-                context["refetch_error"] = f"Unexpected error while refreshing channel. {exc}"
+                context["error_message"] = f"Unexpected error while refreshing channel. {exc}"
 
     return render(request, "feed/subscriptions.html", context=context)
 
