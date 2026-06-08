@@ -3,7 +3,7 @@
 {% block title %}Subscriptions | YouTube Refined{% endblock %}
 
 {% block content %}
-    <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-8">
+    <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-6">
         <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="flex flex-col gap-2">
                 <a href="{% url 'home' %}" class="text-sm font-semibold text-primary hover:underline">Back to Home</a>
@@ -58,14 +58,12 @@
                         </td>
                         <td class="px-5 py-2 text-right">
                             <div class="flex items-center justify-end gap-2">
+                                {% url 'subscriptions_channel_edit' channel.channel_id as edit_url %}
+                                {% include "components/button.html" with href=edit_url label="Edit" size="sm" color="secondary" %}
                                 <form method="post">
                                     {% csrf_token %}
                                     <input type="hidden" name="channel_id" value="{{ channel.channel_id }}" />
                                     {% include "components/button.html" with label="Refresh" size="sm" %}
-                                </form>
-                                <form method="post" action="{% url 'subscriptions_delete' channel.channel_id %}">
-                                    {% csrf_token %}
-                                    {% include "components/button.html" with label="Remove" size="sm" color="error" %}
                                 </form>
                             </div>
                         </td>

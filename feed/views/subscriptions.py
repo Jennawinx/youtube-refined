@@ -1,8 +1,9 @@
 from asyncio.log import logger
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from feed.models import Channel
 from feed.services.youtube_api import fetch_channel_feed, refresh_channel_with_feed, search_channels
 from feed.services.llm_channel_topic_picker import determine_channel_topics
+from feed.services.llm_video_categorizer import COMMON_TOPICS
 
 def subscriptions(request):
     channels = Channel.objects.order_by("name")
@@ -64,6 +65,36 @@ def subscriptions_create(request):
                 context["create_error"] = f"Unexpected error while creating subscription. {exc}"
 
     return render(request, "feed/subscriptions_create.html", context=context)
+
+
+def subscriptions_channel_edit(request, channel_id):
+    channel = get_object_or_404(Channel, channel_id=channel_id)
+    context = {
+        "channel": channel,
+        "available_topics": COMMON_TOPICS,
+        "category_tags_input": ", ".join(channel.category_tags or []),
+        "error_message": None,
+    }
+
+    if request.method == "POST":
+        action = request.POST.get("action", "update")
+
+        if action == "delete":
+            channel.delete()
+            return redirect("subscriptions")
+
+        category_tags_input = request.POST.get("category_tags", "").strip()
+        context["category_tags_input"] = category_tags_input
+        category_tags = [tag.strip() for tag in category_tags_input.split(",") if tag.strip()]
+        channel.category_tags = category_tags
+        try:
+            channel.save(update_fields=["category_tags"])
+            return redirect("subscriptions")
+        except Exception as exc:
+            logger.exception("Update channel tags failed for channel_id=%s. %s", channel_id, exc)
+            context["error_message"] = f"Unexpected error while saving. {exc}"
+
+    return render(request, "feed/subscriptions_channel_edit.html", context=context)
 
 
 def subscriptions_delete(request, channel_id):
