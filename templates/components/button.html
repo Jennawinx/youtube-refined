@@ -1,10 +1,19 @@
 {% with base_classes="inline-flex items-center justify-center rounded-lg font-semibold transition-transform active:scale-95 shadow-sm" md_classes="px-4 py-2 text-sm" sm_classes="px-3 py-1 text-xs" color_name=color|default:"primary" %}
     {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} bg-{{ color_name }} text-on-{{ color_name }}{% if full_width %} w-full{% endif %}{% if class_name %} {{ class_name }}{% endif %} {% if size == 'sm' %} {{ sm_classes }} {% else %} {{ md_classes }}{% endif %}">
+        <a 
+            href="{{ href }}" 
+            class="{{ base_classes }} bg-{{ color_name }} text-on-{{ color_name }}{% if full_width %} w-full{% endif %}{% if class_name %} {{ class_name }}{% endif %} {% if size == 'sm' %} {{ sm_classes }} {% else %} {{ md_classes }}{% endif %}"
+        >
             {{ label }}
         </a>
     {% else %}
-        <button type="{{ type|default:'submit' }}"{% if name %} name="{{ name }}"{% endif %}{% if value %} value="{{ value }}"{% endif %} class="{{ base_classes }} bg-{{ color_name }} text-on-{{ color_name }}{% if full_width %} w-full{% endif %}{% if class_name %} {{ class_name }}{% endif %} {% if size == 'sm' %} {{ sm_classes }}{% else %} {{ md_classes }}{% endif %}">
+        <button 
+            type="{{ type|default:'submit' }}"{% if name %} 
+            name="{{ name }}"{% endif %}{% if value %} 
+            value="{{ value }}"{% endif %} 
+            class="{{ base_classes }} bg-{{ color_name }} text-on-{{ color_name }}{% if full_width %} w-full{% endif %}{% if class_name %} {{ class_name }}{% endif %} {% if size == 'sm' %} {{ sm_classes }}{% else %} {{ md_classes }}{% endif %}"
+            {% if onclick %} onclick="{{ onclick }}"{% endif %}
+        >
             {{ label }}
         </button>
     {% endif %}
