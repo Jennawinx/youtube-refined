@@ -42,6 +42,7 @@ class TimeRange:
         self,
         start_hour: int,
         end_hour: int,
+        rule_ids: list[int],
         rule_name: str,
         category_tags: list[str],
         min_energy: Optional[int],
@@ -51,6 +52,7 @@ class TimeRange:
     ):
         self.start_hour = start_hour  # 0-23
         self.end_hour = end_hour  # 0-23 (exclusive, so 1-24 in terms of actual hour)
+        self.rule_ids = rule_ids
         self.rule_name = rule_name
         self.category_tags = category_tags
         self.min_energy = min_energy
@@ -107,6 +109,7 @@ class TimeRange:
         return TimeRange(
             start_hour=start,
             end_hour=end,
+            rule_ids=[*self.rule_ids, *other.rule_ids],
             rule_name=f"{self.rule_name} & {other.rule_name}",
             category_tags=combined_tags,
             min_energy=min_energy,
@@ -127,6 +130,7 @@ class TimeRange:
                 TimeRange(
                     start_hour=self.start_hour,
                     end_hour=min(self.end_hour, other.start_hour),
+                    rule_ids=self.rule_ids,
                     rule_name=self.rule_name,
                     category_tags=self.category_tags,
                     min_energy=self.min_energy,
@@ -142,6 +146,7 @@ class TimeRange:
                 TimeRange(
                     start_hour=max(self.start_hour, other.end_hour),
                     end_hour=self.end_hour,
+                    rule_ids=self.rule_ids,
                     rule_name=self.rule_name,
                     category_tags=self.category_tags,
                     min_energy=self.min_energy,
@@ -165,6 +170,7 @@ def _merge_active_ranges(
         return TimeRange(
             start_hour=start_hour,
             end_hour=end_hour,
+            rule_ids=src.rule_ids,
             rule_name=src.rule_name,
             category_tags=list(src.category_tags),
             min_energy=src.min_energy,
@@ -173,11 +179,13 @@ def _merge_active_ranges(
             max_educational=src.max_educational,
         )
 
+    rule_ids: list[int] = []
     rule_names: list[str] = []
     category_tags: list[str] = []
     for r in active_ranges:
         if r.rule_name not in rule_names:
             rule_names.append(r.rule_name)
+            rule_ids.extend(r.rule_ids)
         for tag in r.category_tags:
             if tag not in category_tags:
                 category_tags.append(tag)
@@ -215,6 +223,7 @@ def _merge_active_ranges(
     return TimeRange(
         start_hour=start_hour,
         end_hour=end_hour,
+        rule_ids=rule_ids,
         rule_name=" & ".join(rule_names),
         category_tags=category_tags,
         min_energy=min_energy,
@@ -296,6 +305,7 @@ def compute_rules_schedule(rules: list[FeedRule]) -> RuleSchedule:
             time_range = TimeRange(
                 start_hour=start_hour,
                 end_hour=end_hour,
+                rule_ids=[rule.id],
                 rule_name=rule.name,
                 category_tags=rule.category_tags or [],
                 min_energy=rule.min_energy,
