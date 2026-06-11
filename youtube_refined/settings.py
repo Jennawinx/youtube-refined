@@ -12,12 +12,20 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from pathlib import Path
+import sys
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Check if the app is bundled/frozen (e.g., via PyInstaller)
+if getattr(sys, 'frozen', False):
+    # Points to the directory where the macOS binary actually lives
+    BASE_DIR = Path(sys.executable).resolve().parent
+else:
+    # Standard local development fallback
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
 load_dotenv(BASE_DIR / ".env")
 
 # Utils for parsing .env

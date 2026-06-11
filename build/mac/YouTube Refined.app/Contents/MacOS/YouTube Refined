@@ -1,3 +1,3 @@
 #!/bin/bash
 cd "/Users/jennyquach/yayCode/youtube-refined"
-exec "/Users/jennyquach/yayCode/youtube-refined/.venv/bin/python3" desktop.py
+exec "/Users/jennyquach/yayCode/youtube-refined/.venv/bin/python3" "/Users/jennyquach/yayCode/youtube-refined/desktop.py"

@@ -1,12 +1,18 @@
 ### Get started
+
+Use python3.14 or higher
+
 ```bash
 # First time
-python3.14 -m venv .venv
+python3.14 -m venv .venv            # Or whichever version you choose
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Run
+# Run for development
 python manage.py runserver
+
+# Run pywebviewer
+python desktop.py
 ```
 
 ### modifying theming
@@ -22,4 +28,17 @@ feed/static/css/tailwindcss -i feed/static/css/input.css -o feed/static/css/outp
 
 # Watching changes
 feed/static/css/tailwindcss -i feed/static/css/input.css -o feed/static/css/output.css --watch
+```
+
+### Running as desktop app
+
+#### MAC
+
+**Run exe as pywebview**
+```
+    1. under build/mac/YouTube Refined.app/Contents/MacOS/YouTube Refined
+    2. update the paths
+    3. copy the file to desktop
+    4. update icon by right click get info
+    5. drag build/mac/YouTube Refined.app/Contents/Resources/AppIcon.icns into the icon next to the file name
 ```
