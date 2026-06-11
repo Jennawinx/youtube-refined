@@ -3,6 +3,7 @@ from typing import Optional
 from django.db.models import Q
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from feed.models import Video
 from feed.services.llm_video_categorizer import COMMON_TOPICS
@@ -76,6 +77,7 @@ def parse_screen_type(value: Optional[str]) -> str:
     return mode if mode in {ScreenType.RECOMMENDED, ScreenType.ALL, ScreenType.CUSTOM} else ScreenType.RECOMMENDED
 
 
+@ensure_csrf_cookie
 def home(request):
     try:
         offset = max(0, int(request.GET.get("offset", 0)))
