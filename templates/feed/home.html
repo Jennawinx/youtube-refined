@@ -1,168 +1,164 @@
-{% extends 'base.html' %}
+{% extends 'page_wide.html' %}
 
-{% block title %}
+{% block title_bar %}
   YouTube Refined
 {% endblock %}
 
-{% block content %}
-  <main class="w-full min-h-screen bg-surface-container-lowest overflow-y-auto px-10 py-8 flex flex-col gap-8">
-    {% url 'home' as home_url %}
-    {% url 'subscriptions' as subscriptions_url %}
+{% block header %}
+  <div class="space-y-1">
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-on-surface-variant/70">Personalized feed</p>
+    <h1 class="font-extrabold tracking-tight sm:text-2xl">YouTube Refined</h1>
+  </div>
+{% endblock %}
 
+{% block header_actions %}
+  {% url 'subscriptions' as subscriptions_url %}
+  {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
+{% endblock %}
 
-    <!-- Header -->
-    <header class="flex flex-col gap-4">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div class="space-y-1">
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-on-surface-variant/70">Personalized feed</p>
-          <h1 class="font-extrabold tracking-tight sm:text-2xl">YouTube Refined</h1>
-          {% comment %} <p class="max-w-2xl text-sm text-on-surface-variant">Browse videos with the current recommendation rules, search filters, and energy ratings applied.</p> {% endcomment %}
-        </div>
-        <div class="flex items-center gap-3 flex-wrap">
-          {% include 'components/button.html' with href=subscriptions_url label='Manage' %}
-        </div>
-      </div>
+{% block page_content %}
+  {% url 'home' as home_url %}
 
-
-      <!-- Current Rule Details -->
-      <div>
-        {% if current_rule and screen_type == 'feed' %}
-          <details class="rounded-lg border border-outline-variant/25 shadow-sm">
-            <summary class="cursor-pointer list-none flex items-center justify-between gap-4 text-sm text-on-surface select-none bg-accent/10 px-4 py-2 border">
-              Current rule: {{ current_rule.rule_name }}
-              <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Show details</span>
-            </summary>
-            <div class="my-2 grid gap-3 text-sm text-on-surface-variant sm:grid-cols-2 bg-paper px-4 py-2 ">
-              <div class="flex flex-col gap-3">
-                <div>
-                  <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Time</p>
-                  <p class="mt-1 text-on-surface">{{ current_rule.time_str }}</p>
-                </div>
-                {% if current_rule.min_energy or current_rule.max_energy %}
-                  <div>
-                    <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Mental energy</p>
-                    <p class="mt-1 text-on-surface">{{ current_rule.min_energy|default:'-' }} to {{ current_rule.max_energy|default:'-' }}</p>
-                  </div>
-                {% endif %}
-                {% if current_rule.min_educational or current_rule.max_educational %}
-                  <div>
-                    <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Educational</p>
-                    <p class="mt-1 text-on-surface">{{ current_rule.min_educational|default:'-' }} to {{ current_rule.max_educational|default:'-' }}</p>
-                  </div>
-                {% endif %}
+  <!-- Filters -->
+  <div class="flex flex-col gap-4">
+    <!-- Current Rule Details -->
+    <div>
+      {% if current_rule and screen_type == 'feed' %}
+        <details class="rounded-lg border border-outline-variant/25 shadow-sm">
+          <summary class="cursor-pointer list-none flex items-center justify-between gap-4 text-sm text-on-surface select-none bg-accent/10 px-4 py-2 border">
+            Current rule: {{ current_rule.rule_name }}
+            <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Show details</span>
+          </summary>
+          <div class="my-2 grid gap-3 text-sm text-on-surface-variant sm:grid-cols-2 bg-paper px-4 py-2 ">
+            <div class="flex flex-col gap-3">
+              <div>
+                <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Time</p>
+                <p class="mt-1 text-on-surface">{{ current_rule.time_str }}</p>
               </div>
-              {% if current_rule.category_tags %}
+              {% if current_rule.min_energy or current_rule.max_energy %}
                 <div>
-                  <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Tags</p>
-                  <div class="mt-2 flex flex-wrap gap-1">
-                    {% for tag in current_rule.category_tags %}
-                      <span class="badge badge-info badge-sm">{{ tag }}</span>
-                    {% endfor %}
-                  </div>
+                  <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Mental energy</p>
+                  <p class="mt-1 text-on-surface">{{ current_rule.min_energy|default:'-' }} to {{ current_rule.max_energy|default:'-' }}</p>
+                </div>
+              {% endif %}
+              {% if current_rule.min_educational or current_rule.max_educational %}
+                <div>
+                  <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Educational</p>
+                  <p class="mt-1 text-on-surface">{{ current_rule.min_educational|default:'-' }} to {{ current_rule.max_educational|default:'-' }}</p>
                 </div>
               {% endif %}
             </div>
-          </details>
-        {% endif %}
-
-
-        <!-- Filters -->
-        <div class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm flex flex-col gap-2">
-          <form id="home-filter-form" method="get" class="w-full flex flex-col gap-3">
-            <div class="flex flex-wrap items-center gap-2">
-
-              <!-- Advanced Filter Button -->
-              <button id="advanced-filter-toggle" type="button" aria-expanded="false" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors border-outline-variant/60 text-on-surface hover:bg-surface-container-low aria-expanded:bg-primary/10 aria-expanded:border-primary aria-expanded:text-primary">
-                <span class="material-symbols-outlined text-[16px]">tune</span>
-                Filters{% if category_tags %} ({{ category_tags|length }}){% endif %}
-              </button>
-
-              <!-- Tabs -->
-              <div role="tablist" class="tabs tabs-box tabs-sm bg-gray-200/35 rounded-md">
-                {% for screen in screen_options %}
-                  <!-- Keep filters when switching tabs -->
-                  {% comment %} <a role="tab" href="{{ home_url }}?screen_type={{ screen }}&q={{ search_query|urlencode }}&energy_min={{ energy_min|default_if_none:'' }}&energy_max={{ energy_max|default_if_none:'' }}&educational_min={{ educational_min|default_if_none:'' }}&educational_max={{ educational_max|default_if_none:'' }}&category_tags={{ category_tags_str|urlencode }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a> {% endcomment %}
-                  
-                  <!-- Clear filters when switching tabs -->
-                  <a role="tab" href="{{ home_url }}?screen_type={{ screen }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a>
-                {% endfor %}
+            {% if current_rule.category_tags %}
+              <div>
+                <p class="text-xs uppercase tracking-wide text-on-surface-variant/70">Tags</p>
+                <div class="mt-2 flex flex-wrap gap-1">
+                  {% for tag in current_rule.category_tags %}
+                    <span class="badge badge-info badge-sm">{{ tag }}</span>
+                  {% endfor %}
+                </div>
               </div>
+            {% endif %}
+          </div>
+        </details>
+      {% endif %}
 
-              <!-- Search -->
-              <div class="flex min-w-0 flex-1 items-center gap-2">
-                <input type="search" name="q" value="{{ search_query }}" placeholder="Search videos by title, channel, or description" class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary" />
-                <!-- Metadata to pass to the search -->
-                {% if test_day %}
-                  <input type="hidden" name="test_day" value="{{ test_day }}" />
-                {% endif %}
-                {% if test_hour is not None %}
-                  <input type="hidden" name="test_hour" value="{{ test_hour }}" />
-                {% endif %}
-                <input type="hidden" name="screen_type" value="{{ screen_type }}" />
-                <!-- Action Buttons -->
-                {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
-                {% include 'components/button.html' with href=home_url|add:'?screen_type='|add:screen_type label='Clear' color='secondary' %}
-              </div>
+
+      <!-- Filters -->
+      <div class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm flex flex-col gap-2">
+        <form id="home-filter-form" method="get" class="w-full flex flex-col gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+
+            <!-- Advanced Filter Button -->
+            <button id="advanced-filter-toggle" type="button" aria-expanded="false" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors border-outline-variant/60 text-on-surface hover:bg-surface-container-low aria-expanded:bg-primary/10 aria-expanded:border-primary aria-expanded:text-primary">
+              <span class="material-symbols-outlined text-[16px]">tune</span>
+              Filters{% if category_tags %} ({{ category_tags|length }}){% endif %}
+            </button>
+
+            <!-- Tabs -->
+            <div role="tablist" class="tabs tabs-box tabs-sm bg-gray-200/35 rounded-md">
+              {% for screen in screen_options %}
+                <!-- Keep filters when switching tabs -->
+                {% comment %} <a role="tab" href="{{ home_url }}?screen_type={{ screen }}&q={{ search_query|urlencode }}&energy_min={{ energy_min|default_if_none:'' }}&energy_max={{ energy_max|default_if_none:'' }}&educational_min={{ educational_min|default_if_none:'' }}&educational_max={{ educational_max|default_if_none:'' }}&category_tags={{ category_tags_str|urlencode }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a> {% endcomment %}
+                
+                <!-- Clear filters when switching tabs -->
+                <a role="tab" href="{{ home_url }}?screen_type={{ screen }}" class="tab {% if screen_type == screen %}tab-active{% endif %}">{{ screen|capfirst }}</a>
+              {% endfor %}
             </div>
 
-            <!-- Advanced Filters -->
-            <div class="flex flex-wrap items-center gap-2 justify-center">
-              <div class="flex items-center gap-3">
-                <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Mental energy</span>
-                {% include 'components/rate.html' with name='energy' selected_min=energy_min selected_max=energy_max max=10 %}
-              </div>
-              <div class="flex items-center gap-3">
-                <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap text-right">Educational</span>
-                {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
-              </div>
+            <!-- Search -->
+            <div class="flex min-w-0 flex-1 items-center gap-2">
+              <input type="search" name="q" value="{{ search_query }}" placeholder="Search videos by title, channel, or description" class="flex-1 min-w-0 rounded-lg border border-outline-variant/60 bg-surface px-4 py-2 text-sm text-on-surface outline-none focus:border-primary" />
+              <!-- Metadata to pass to the search -->
+              {% if test_day %}
+                <input type="hidden" name="test_day" value="{{ test_day }}" />
+              {% endif %}
+              {% if test_hour is not None %}
+                <input type="hidden" name="test_hour" value="{{ test_hour }}" />
+              {% endif %}
+              <input type="hidden" name="screen_type" value="{{ screen_type }}" />
+              <!-- Action Buttons -->
+              {% include 'components/button.html' with type='submit' label='Search' color='secondary' %}
+              {% include 'components/button.html' with href=home_url|add:'?screen_type='|add:screen_type label='Clear' color='secondary' %}
             </div>
+          </div>
 
-            <!-- Expandable: Category Tag Filters -->
-            <div id="advanced-filter-section" class="hidden">
-              <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Categories</span>
-              {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_str values=all_category_tags placeholder='Filter by category tag...' %}
+          <!-- Advanced Filters -->
+          <div class="flex flex-wrap items-center gap-2 justify-center">
+            <div class="flex items-center gap-3">
+              <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Mental energy</span>
+              {% include 'components/rate.html' with name='energy' selected_min=energy_min selected_max=energy_max max=10 %}
             </div>
-          </form>
-        </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap text-right">Educational</span>
+              {% include 'components/rate.html' with name='educational' selected_min=educational_min selected_max=educational_max max=10 %}
+            </div>
+          </div>
+
+          <!-- Expandable: Category Tag Filters -->
+          <div id="advanced-filter-section" class="hidden">
+            <span class="text-sm w-24 text-on-surface-variant whitespace-nowrap">Categories</span>
+            {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_str values=all_category_tags placeholder='Filter by category tag...' %}
+          </div>
+        </form>
       </div>
-      <script>
-        (function () {
-          var btn = document.getElementById('advanced-filter-toggle');
-          var panel = document.getElementById('advanced-filter-section');
-          if (!btn || !panel) return;
-          btn.addEventListener('click', function () {
-            var nowHidden = panel.classList.toggle('hidden');
-            btn.setAttribute('aria-expanded', String(!nowHidden));
-          });
-        })();
-      </script>
-    </header>
+    </div>
+    <script>
+      (function () {
+        var btn = document.getElementById('advanced-filter-toggle');
+        var panel = document.getElementById('advanced-filter-section');
+        if (!btn || !panel) return;
+        btn.addEventListener('click', function () {
+          var nowHidden = panel.classList.toggle('hidden');
+          btn.setAttribute('aria-expanded', String(!nowHidden));
+        });
+      })();
+    </script>
+  </div>
 
 
-    <!-- Video Grid -->
-    {% if videos %}
-      <section id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pb-10">
-        {% for video in videos %}
-          {% include 'components/card_video.html' %}
-        {% endfor %}
+  <!-- Video Grid -->
+  {% if videos %}
+    <section id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pb-10">
+      {% for video in videos %}
+        {% include 'components/card_video.html' %}
+      {% endfor %}
 
-        {% if has_more %}
-          {% include 'feed/home_pager.html' with next_offset=next_offset %}
-        {% endif %}
-      </section>
-    {% else %}
-      <section class="flex flex-col items-center justify-center gap-4 py-20 text-center">
-        <span class="material-symbols-outlined text-6xl text-on-surface-variant/30">video_library</span>
-        {% if search_query %}
-          <h2 class="text-xl font-bold text-on-surface-variant">No matching videos</h2>
-          <p class="text-sm text-on-surface-variant/70">Try a different search term.</p>
-        {% else %}
-          <h2 class="text-xl font-bold text-on-surface-variant">No videos yet</h2>
-          <p class="text-sm text-on-surface-variant/70">Use Manage to refresh subscriptions and fetch videos from your channels.</p>
-        {% endif %}
-      </section>
-    {% endif %}
-  </main>
+      {% if has_more %}
+        {% include 'feed/home_pager.html' with next_offset=next_offset %}
+      {% endif %}
+    </section>
+  {% else %}
+    <section class="flex flex-col items-center justify-center gap-4 py-20 text-center">
+      <span class="material-symbols-outlined text-6xl text-on-surface-variant/30">video_library</span>
+      {% if search_query %}
+        <h2 class="text-xl font-bold text-on-surface-variant">No matching videos</h2>
+        <p class="text-sm text-on-surface-variant/70">Try a different search term.</p>
+      {% else %}
+        <h2 class="text-xl font-bold text-on-surface-variant">No videos yet</h2>
+        <p class="text-sm text-on-surface-variant/70">Use Manage to refresh subscriptions and fetch videos from your channels.</p>
+      {% endif %}
+    </section>
+  {% endif %}
 
   {% include 'components/modal_youtube.html' %}
 

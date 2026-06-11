@@ -46,7 +46,7 @@
         {% include 'components/autocomplete.html' with name='category_tags' value=category_tags_input values=available_topics input_bg_class='bg-white' tags_bg_class='bg-white' suggestions_bg_class='bg-white' %}
       </div>
 
-      <div class="flex items-center gap-3 pt-2">
+      <div class="flex justify-between items-center gap-3 pt-2">
         {% include 'components/button.html' with label='Save Changes' %}
         {% include 'components/button.html' with label='Remove Channel' type='button' color='error'  onclick="document.getElementById('delete-modal').showModal()" %}
       </div>
@@ -59,7 +59,7 @@
       <p class="py-4 text-sm text-on-surface-variant/70">This will permanently delete the channel and all its videos. This action cannot be undone.</p>
       <div class="modal-action">
         <form method="dialog">
-          {% include 'components/button.html' with label='Cancel' type='button' color='secondary' %}
+          {% include 'components/button.html' with label='Cancel' color='secondary' %}
         </form>
         <form method="post">
           {% csrf_token %}
