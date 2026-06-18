@@ -57,6 +57,10 @@ feed/static/css/tailwindcss -i feed/static/css/input.css -o feed/static/css/outp
 
 **Compile the exe**
 ```powershell
+
+    # Start venv
+    .\.venv\Scripts\Activate.ps1
+
     # Create .spec file (first time) otherwise update hiddenimports= as needed
     # pyinstaller --name="youtube_refined" --noconsole desktop.py
 
