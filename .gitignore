@@ -13,6 +13,10 @@ venv/
 /media/
 /staticfiles/
 
+# Builds
+/build/youtube_refined
+/dist
+
 # IDE / OS
 .DS_Store
 .vscode/

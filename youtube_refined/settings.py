@@ -18,15 +18,19 @@ from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-# Check if the app is bundled/frozen (e.g., via PyInstaller)
+
+# Check if the script is running as a bundled PyInstaller executable
 if getattr(sys, 'frozen', False):
-    # Points to the directory where the macOS binary actually lives
-    BASE_DIR = Path(sys.executable).resolve().parent
+    print("\n\n---------------------------------------------\n")
+    print("Running in bundle")
+    print("\n\n---------------------------------------------\n")
+    # Path to the temporary folder where PyInstaller extracts files
+    BASE_DIR = Path(sys._MEIPASS)
 else:
-    # Standard local development fallback
+    # Path to the normal script directory
     BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / ".env")
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Utils for parsing .env
 
@@ -93,7 +97,7 @@ ROOT_URLCONF = 'youtube_refined.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -115,7 +119,7 @@ WSGI_APPLICATION = 'youtube_refined.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -154,7 +158,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# static/
+STATIC_URL = os.path.join('static', '') 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -5,14 +5,7 @@ class FeedConfig(AppConfig):
     name = 'feed'
 
     def ready(self):
-        from feed.services.schedule import get_rules_schedule
         from feed.services.llm_video_categorizer import LLM_SYS_PROMPT_CATEGORIZE
-
-        print(
-            "\n=============================================\nInitialized rules cache:                    \n=============================================\n"
-        )
-        # Preload rules into cache on startup
-        get_rules_schedule()
     
         print(
             "\n=============================================\nInitialized openai client and system prompts:\n=============================================\n"
