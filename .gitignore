@@ -12,6 +12,7 @@ venv/
 *.sqlite3
 /media/
 /staticfiles/
+/static_collected/
 
 # Builds
 /build/youtube_refined

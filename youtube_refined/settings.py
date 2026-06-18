@@ -19,16 +19,25 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
-# Check if the script is running as a bundled PyInstaller executable
-if getattr(sys, 'frozen', False):
+IS_BUNDLE = getattr(sys, 'frozen', False)
+
+if IS_BUNDLE:
     print("\n\n---------------------------------------------\n")
     print("Running in bundle")
     print("\n\n---------------------------------------------\n")
-    # Path to the temporary folder where PyInstaller extracts files
-    BASE_DIR = Path(sys._MEIPASS)
+
+if IS_BUNDLE:
+    # Path to the temporary folder where PyInstaller extracts code & template
+    BASE_DIR = os.path.dirname(sys._MEIPASS)
 else:
     # Path to the normal script directory
     BASE_DIR = Path(__file__).resolve().parent.parent
+
+if IS_BUNDLE:
+    # This is where the user ran the EXE (Actual EXE root)
+    EXE_DIR = Path(sys.executable).parent
+else:
+    EXE_DIR = BASE_DIR
 
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
@@ -159,6 +168,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = os.path.join('static/')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_collected')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

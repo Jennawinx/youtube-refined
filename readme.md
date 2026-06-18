@@ -61,11 +61,11 @@ feed/static/css/tailwindcss -i feed/static/css/input.css -o feed/static/css/outp
     # Start venv
     .\.venv\Scripts\Activate.ps1
 
-    # Create .spec file (first time) otherwise update hiddenimports= as needed
-    # pyinstaller --name="youtube_refined" --noconsole desktop.py
+    # Collect all static assets
+    python manage.py collectstatic
 
-    # Include env file
-    pyinstaller --name="youtube_refined" --onefile --add-data ".env;." desktop.py
+    # Create .spec file and include env file
+    # pyinstaller --name="youtube_refined" --onedir --add-data ".env;." desktop.py
 
     # Build the .exe
     pyinstaller youtube_refined.spec
