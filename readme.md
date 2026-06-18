@@ -44,18 +44,39 @@ feed/static/css/tailwindcss -i feed/static/css/input.css -o feed/static/css/outp
 
 #### MAC
 
-**Run script as pywebview**
+**Run in script**
 ```
+    Pre-req
+    - Make sure get started steps work
+
     1. under build/mac/YouTube Refined.app/Contents/MacOS/YouTube Refined
     2. update the paths
     3. copy the file to desktop
     4. update icon by right click get info
     5. drag build/mac/YouTube Refined.app/Contents/Resources/AppIcon.icns into the icon next to the file name
+
+    NOTE
+    - All DB resources and code will be saved in the code's project folder
 ```
 
 #### Windows
+**Run in script**
+```
+    Pre-req
+    - Make sure get started steps work
 
-**Compile the exe**
+    1. find build/windows/youtube_refined.bat
+    2. create a shortcut
+    3. properties > change icon
+    4. select the feed.ico
+    5. move the shortcut to desktop or wherever you please
+
+    NOTE
+    - All DB resources and code will be saved in the code's project folder
+```
+
+
+**Compile the app to standalone exe (DOES NOT WORK!)**
 ```powershell
 
     # Start venv
