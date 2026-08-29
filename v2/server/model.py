@@ -1,4 +1,15 @@
 
+from enum import Enum
+
+class DAY_OF_WEEK(str, Enum):
+    MON = "monday"
+    TUE = "tuesday"
+    WED = "wednesday"
+    THU = "thursday"
+    FRI = "friday"
+    SAT = "saturday"
+    SUN = "sunday"
+
 COMMON_TOPICS = [
     "Actors",
     "AI and Machine Learning",

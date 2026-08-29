@@ -7,27 +7,18 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from schema import ScheduleRules
 from db import get_db
-
-
-class DayOfWeek(str, Enum):
-    MON = "monday"
-    TUE = "tuesday"
-    WED = "wednesday"
-    THU = "thursday"
-    FRI = "friday"
-    SAT = "saturday"
-    SUN = "sunday"
-
+from model import DAY_OF_WEEK
+from .schedule import FeedSchedule
 
 router = APIRouter(prefix="/feed_schedule", tags=["feed_schedule"])
-
 
 @router.get("/")
 def get_schedule(
     db: Session = Depends(get_db),
+    # TODO: Return type
 ):
-    # TODO:
-    return {}
+    schedule = FeedSchedule(db)
+    return {"schedule": schedule.get_feed_schedule()}
 
 
 @router.get("/rules")
@@ -43,7 +34,7 @@ def get_schedule(
 
 class RuleCreate(BaseModel):
     name: str
-    active_days: set[DayOfWeek]
+    active_days: set[DAY_OF_WEEK]
     start_time: time
     end_time: time
     max_educational: Optional[int] = None
@@ -61,13 +52,13 @@ def create_rule(
     now = datetime.now()
     rule = ScheduleRules(
         name=payload.name,
-        monday=DayOfWeek.MON in payload.active_days,
-        tuesday=DayOfWeek.TUE in payload.active_days,
-        wednesday=DayOfWeek.WED in payload.active_days,
-        thursday=DayOfWeek.THU in payload.active_days,
-        friday=DayOfWeek.FRI in payload.active_days,
-        saturday=DayOfWeek.SAT in payload.active_days,
-        sunday=DayOfWeek.SUN in payload.active_days,
+        monday=DAY_OF_WEEK.MON in payload.active_days,
+        tuesday=DAY_OF_WEEK.TUE in payload.active_days,
+        wednesday=DAY_OF_WEEK.WED in payload.active_days,
+        thursday=DAY_OF_WEEK.THU in payload.active_days,
+        friday=DAY_OF_WEEK.FRI in payload.active_days,
+        saturday=DAY_OF_WEEK.SAT in payload.active_days,
+        sunday=DAY_OF_WEEK.SUN in payload.active_days,
         start_time=payload.start_time.replace(microsecond=0),
         end_time=payload.end_time.replace(microsecond=0),
         created_at=now,
@@ -85,7 +76,7 @@ def create_rule(
 
 class RuleUpdate(BaseModel):
     name: Optional[str] = None
-    active_days: Optional[set[DayOfWeek]] = None
+    active_days: Optional[set[DAY_OF_WEEK]] = None
     start_time: Optional[time] = None
     end_time: Optional[time] = None
     max_educational: Optional[int] = None
@@ -106,13 +97,13 @@ def modify_rule(
     if payload.name:
         changes["name"] = payload.name
     if payload.active_days:
-        changes["monday"] = DayOfWeek.MON in payload.active_days
-        changes["tuesday"] = DayOfWeek.TUE in payload.active_days
-        changes["wednesday"] = DayOfWeek.WED in payload.active_days
-        changes["thursday"] = DayOfWeek.THU in payload.active_days
-        changes["friday"] = DayOfWeek.FRI in payload.active_days
-        changes["saturday"] = DayOfWeek.SAT in payload.active_days
-        changes["sunday"] = DayOfWeek.SUN in payload.active_days
+        changes["monday"] = DAY_OF_WEEK.MON in payload.active_days
+        changes["tuesday"] = DAY_OF_WEEK.TUE in payload.active_days
+        changes["wednesday"] = DAY_OF_WEEK.WED in payload.active_days
+        changes["thursday"] = DAY_OF_WEEK.THU in payload.active_days
+        changes["friday"] = DAY_OF_WEEK.FRI in payload.active_days
+        changes["saturday"] = DAY_OF_WEEK.SAT in payload.active_days
+        changes["sunday"] = DAY_OF_WEEK.SUN in payload.active_days
     if payload.start_time:
         changes["start_time"] = payload.start_time.replace(microsecond=0)
     if payload.end_time:
