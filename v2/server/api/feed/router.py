@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from models import Videos
+from schema import Videos
 from db import get_db
 
 

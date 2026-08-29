@@ -49,5 +49,5 @@ pip freeze > requirements.txt
 ##### How DB model was derived from V1
 ```sh
 pip install sqlacodegen
-sqlacodegen sqlite:///../db.sqlite3 > models.py
+sqlacodegen sqlite:///../db.sqlite3 > schema.py
 ```
