@@ -304,6 +304,7 @@ def compute_feed_schedule(rules: list[ScheduleRules]) -> RuleSchedule:
 
     return schedule
 
+# TODO: Update into singleton class
 class FeedSchedule:
     ScheduleCache = None
     db = None
