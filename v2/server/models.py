@@ -8,8 +8,8 @@ class Base(DeclarativeBase):
     pass
 
 
-class FeedChannel(Base):
-    __tablename__ = 'feed_channel'
+class Channels(Base):
+    __tablename__ = 'channels'
     __table_args__ = (
         CheckConstraint('(JSON_VALID("category_tags") OR "category_tags" IS NULL)'),
     )
@@ -23,11 +23,11 @@ class FeedChannel(Base):
     category_tags: Mapped[str] = mapped_column(Text, nullable=False)
     last_updated: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
 
-    feed_video: Mapped[list['FeedVideo']] = relationship('FeedVideo', back_populates='channel')
+    videos: Mapped[list['Videos']] = relationship('Videos', back_populates='channel')
 
 
-class FeedScheduleRule(Base):
-    __tablename__ = 'feed_schedule_rule'
+class ScheduleRules(Base):
+    __tablename__ = 'schedule_rules'
     __table_args__ = (
         CheckConstraint('"max_educational" >= 0'),
         CheckConstraint('"max_energy" >= 0'),
@@ -56,11 +56,11 @@ class FeedScheduleRule(Base):
     min_energy: Mapped[Optional[int]] = mapped_column(Integer)
 
 
-class FeedVideo(Base):
-    __tablename__ = 'feed_video'
+class Videos(Base):
+    __tablename__ = 'videos'
     __table_args__ = (
         CheckConstraint('(JSON_VALID("category_tags") OR "category_tags" IS NULL)'),
-        Index('feed_video_channel_id_4743eefc', 'channel_id')
+        Index('videos_channel_id_4743eefc', 'channel_id')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -76,8 +76,8 @@ class FeedVideo(Base):
     is_watched: Mapped[bool] = mapped_column(Boolean, nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)
-    channel_id: Mapped[int] = mapped_column(ForeignKey('feed_channel.id'), nullable=False)
+    channel_id: Mapped[int] = mapped_column(ForeignKey('channels.id', deferrable=True, initially='DEFERRED'), nullable=False)
     presentation: Mapped[str] = mapped_column(String(255), nullable=False)
     duration_seconds: Mapped[Optional[int]] = mapped_column(Integer)
 
-    channel: Mapped['FeedChannel'] = relationship('FeedChannel', back_populates='feed_video')
+    channel: Mapped['Channels'] = relationship('Channels', back_populates='videos')
