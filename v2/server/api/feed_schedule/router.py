@@ -22,7 +22,7 @@ def get_schedule(
 
 
 @router.get("/rules")
-def get_schedule(
+def get_rules(
     db: Session = Depends(get_db),
 ):
     return {
