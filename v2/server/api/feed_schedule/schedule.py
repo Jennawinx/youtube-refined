@@ -165,24 +165,21 @@ def _merge_active_ranges(
     rule_ids: list[int] = []
     rule_names: list[str] = []
     category_tags: list[str] = []
+    
     for r in active_ranges:
         if r.rule_name not in rule_names:
             rule_names.append(r.rule_name)
             rule_ids.extend(r.rule_ids)
+        
         for tag in r.category_tags:
             if tag not in category_tags:
                 category_tags.append(tag)
-
-    min_energies = [r.min_energy for r in active_ranges]
-    max_energies = [r.max_energy for r in active_ranges]
-    min_educationals = [r.min_educational for r in active_ranges]
-    max_educationals = [r.max_educational for r in active_ranges]
-
+    
     # Overlap segment should keep the intersection of ranges.
-    min_energy = _safe_max(min_energies)
-    max_energy = _safe_min(max_energies)
-    min_educational = _safe_max(min_educationals)
-    max_educational = _safe_min(max_educationals)
+    min_energy = _safe_max([r.min_energy for r in active_ranges])
+    max_energy = _safe_min([r.max_energy for r in active_ranges])
+    min_educational = _safe_max([r.min_educational for r in active_ranges])
+    max_educational = _safe_min([r.max_educational for r in active_ranges])
 
     if min_energy is not None and max_energy is not None and min_energy > max_energy:
         min_energy = None
