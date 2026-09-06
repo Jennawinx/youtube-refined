@@ -16,6 +16,7 @@ This ensures every time slot has all applicable rules represented, with overlaps
 showing the intersection of constraints.
 """
 
+import json
 from typing import Optional
 from pydantic import BaseModel, RootModel
 from schema import ScheduleRules
@@ -36,6 +37,7 @@ class RuleBlock(BaseModel):
 
 class FeedSchedule(RootModel[dict[DAY_OF_WEEK, list[RuleBlock]]]):
     """{ weekday -> [{ start_hour, end_hour, rule_name, category_tags, min_energy, max_energy, min_educational, max_educational }] }"""
+
     pass
 
 
@@ -157,7 +159,9 @@ def schedule_resolve_overlaps(ranges: list[RuleBlock]) -> list[RuleBlock]:
         if not active_ranges:
             continue
 
-        resolved.append(_schedule_merge_active_ranges(active_ranges, start_hour, end_hour))
+        resolved.append(
+            _schedule_merge_active_ranges(active_ranges, start_hour, end_hour)
+        )
 
     return resolved
 
@@ -171,7 +175,7 @@ def _schedule_compute(rules: list[ScheduleRules]) -> FeedSchedule:
 
     Days are: monday, tuesday, wednesday, thursday, friday, saturday, sunday
     """
-    
+
     schedule = {day: [] for day in DAY_NAMES}
 
     for day in DAY_NAMES:
@@ -194,7 +198,7 @@ def _schedule_compute(rules: list[ScheduleRules]) -> FeedSchedule:
                 end_hour=end_hour,
                 rule_ids=[rule.id],
                 rule_name=rule.name,
-                category_tags=rule.category_tags.split(","),
+                category_tags=json.loads(rule.category_tags),
                 min_energy=rule.min_energy,
                 max_energy=rule.max_energy,
                 min_educational=rule.min_educational,
