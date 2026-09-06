@@ -18,7 +18,7 @@ showing the intersection of constraints.
 
 import json
 from typing import Optional
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel
 from schema import ScheduleRules
 from model import DAY_OF_WEEK, DAY_NAMES
 
@@ -35,10 +35,19 @@ class RuleBlock(BaseModel):
     max_educational: Optional[int] = None
 
 
-class FeedSchedule(RootModel[dict[DAY_OF_WEEK, list[RuleBlock]]]):
-    """{ weekday -> [{ start_hour, end_hour, rule_name, category_tags, min_energy, max_energy, min_educational, max_educational }] }"""
+# class FeedSchedule(RootModel[dict[DAY_OF_WEEK, list[RuleBlock]]]):
+#     """{ weekday -> [{ start_hour, end_hour, rule_name, category_tags, min_energy, max_energy, min_educational, max_educational }] }"""
+#     pass
 
-    pass
+class FeedSchedule(BaseModel):
+    """{ weekday -> [{ start_hour, end_hour, rule_name, category_tags, min_energy, max_energy, min_educational, max_educational }] }"""
+    monday: list[RuleBlock]
+    tuesday: list[RuleBlock]
+    wednesday: list[RuleBlock]
+    thursday: list[RuleBlock]
+    friday: list[RuleBlock]
+    saturday: list[RuleBlock]
+    sunday: list[RuleBlock]
 
 
 # type RuleSchedule = dict[DAY_OF_WEEK, list[TimeRange]]

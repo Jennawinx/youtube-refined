@@ -8,14 +8,13 @@ from sqlalchemy.orm import Session
 from schema import ScheduleRules
 from db import get_db
 from model import DAY_OF_WEEK
-from .schedule import FeedScheduleService
+from .schedule import FeedSchedule, FeedScheduleService
 
 router = APIRouter(prefix="/feed_schedule", tags=["feed_schedule"])
 
-@router.get("/")
+@router.get("/", response_model=FeedSchedule)
 def get_schedule(
     db: Session = Depends(get_db),
-    # TODO: Return type
 ):
     schedule = FeedScheduleService(db)
     return {"schedule": schedule.get_feed_schedule()}
