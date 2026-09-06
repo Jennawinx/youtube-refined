@@ -304,27 +304,30 @@ def compute_feed_schedule(rules: list[ScheduleRules]) -> RuleSchedule:
 
     return schedule
 
-# TODO: Update into singleton class
+
 class FeedSchedule:
-    ScheduleCache = None
-    db = None
-    
+
+    _ScheduleCache: RuleSchedule | None = None
+
     def __init__(self, db):
-        self.db = db
+        self._db = db
 
     def get_feed_schedule(self) -> RuleSchedule:
         """Get the weekly schedule from cache, computing it if not present."""
-        if not self.ScheduleCache:
-            rules = self.db.query(ScheduleRules).order_by(
-                ScheduleRules.start_time, ScheduleRules.name
-            ).all()
+        if not FeedSchedule._ScheduleCache:
+            rules = (
+                self._db.query(ScheduleRules)
+                .order_by(ScheduleRules.start_time, ScheduleRules.name)
+                .all()
+            )
             schedule = compute_feed_schedule(list(rules))
-            self.ScheduleCache = schedule
+            FeedSchedule._ScheduleCache = schedule
 
-        return self.ScheduleCache
+        return FeedSchedule._ScheduleCache
 
-
-    def get_current_rule_block(self, day: DAY_OF_WEEK, hour: int) -> Optional[TimeRange]:
+    def get_current_rule_block(
+        self, day: DAY_OF_WEEK, hour: int
+    ) -> Optional[TimeRange]:
         """Get the active TimeRange for the given day and hour, if any."""
         schedule = self.get_feed_schedule()
         for time_range in schedule.get(day, []):
