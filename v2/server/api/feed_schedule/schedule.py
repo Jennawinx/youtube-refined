@@ -25,6 +25,28 @@ type RuleSchedule = dict[DAY_OF_WEEK, list[TimeRange]]
 """{ weekday -> [{ start_hour, end_hour, rule_name, category_tags, min_energy, max_energy, min_educational, max_educational }] }"""
 
 
+def _filter_none[T](values: list[T | None] = None) -> list[T]:
+    if not values:
+        return [] 
+    else:
+        return [v for v in values if v is not None]
+    
+def _safe_max[T: int | float](*values: list[T | None]) -> T | None:
+    _values = _filter_none(values)
+    if len(_values) > 0:
+        return max(_values)
+    else:
+        return None
+
+def _safe_min[T: int | float](*values: list[T | None]) -> T | None:
+    _values = _filter_none(values)
+    if len(_values) > 0:
+        return min(_values)
+    else:
+        return None
+
+
+# TODO: Refactor logic.....
 class TimeRange:
     """Represents a time range with associated rule metadata."""
 
@@ -63,49 +85,20 @@ class TimeRange:
 
     def intersection(self, other: TimeRange) -> Optional[TimeRange]:
         """Return the overlapping portion, or None if no overlap."""
+
         if not self.overlaps_with(other):
             return None
 
-        start = max(self.start_hour, other.start_hour)
-        end = min(self.end_hour, other.end_hour)
-
-        # Combine tags from both rules
-        combined_tags = list(set(self.category_tags + other.category_tags))
-
-        # Intersection of energy ranges
-        min_energy = (
-            max(self.min_energy, other.min_energy)
-            if self.min_energy and other.min_energy
-            else self.min_energy or other.min_energy
-        )
-        max_energy = (
-            min(self.max_energy, other.max_energy)
-            if self.max_energy and other.max_energy
-            else self.max_energy or other.max_energy
-        )
-
-        # Intersection of educational ranges
-        min_educational = (
-            max(self.min_educational, other.min_educational)
-            if self.min_educational and other.min_educational
-            else self.min_educational or other.min_educational
-        )
-        max_educational = (
-            min(self.max_educational, other.max_educational)
-            if self.max_educational and other.max_educational
-            else self.max_educational or other.max_educational
-        )
-
         return TimeRange(
-            start_hour=start,
-            end_hour=end,
-            rule_ids=[*self.rule_ids, *other.rule_ids],
-            rule_name=f"{self.rule_name} & {other.rule_name}",
-            category_tags=combined_tags,
-            min_energy=min_energy,
-            max_energy=max_energy,
-            min_educational=min_educational,
-            max_educational=max_educational,
+            start_hour      =_safe_max(self.start_hour, other.start_hour),
+            end_hour        =_safe_min(self.end_hour, other.end_hour),
+            rule_ids        =[*self.rule_ids, *other.rule_ids],
+            rule_name       =f"{self.rule_name} & {other.rule_name}",
+            category_tags   =list(set(self.category_tags + other.category_tags)),
+            min_energy      =_safe_max(self.min_energy, other.min_energy),
+            max_energy      =_safe_min(self.max_energy, other.max_energy),
+            min_educational =_safe_max(self.min_educational, other.min_educational),
+            max_educational =_safe_min(self.max_educational, other.max_educational),
         )
 
     def difference(self, other: TimeRange) -> list[TimeRange]:
@@ -180,24 +173,21 @@ def _merge_active_ranges(
             if tag not in category_tags:
                 category_tags.append(tag)
 
-    min_energies = [r.min_energy for r in active_ranges if r.min_energy is not None]
-    max_energies = [r.max_energy for r in active_ranges if r.max_energy is not None]
-    min_educationals = [
-        r.min_educational for r in active_ranges if r.min_educational is not None
-    ]
-    max_educationals = [
-        r.max_educational for r in active_ranges if r.max_educational is not None
-    ]
+    min_energies = [r.min_energy for r in active_ranges]
+    max_energies = [r.max_energy for r in active_ranges]
+    min_educationals = [r.min_educational for r in active_ranges]
+    max_educationals = [r.max_educational for r in active_ranges]
 
     # Overlap segment should keep the intersection of ranges.
-    min_energy = max(min_energies) if min_energies else None
-    max_energy = min(max_energies) if max_energies else None
-    min_educational = max(min_educationals) if min_educationals else None
-    max_educational = min(max_educationals) if max_educationals else None
+    min_energy = _safe_max(min_energies)
+    max_energy = _safe_min(max_energies)
+    min_educational = _safe_max(min_educationals)
+    max_educational = _safe_min(max_educationals)
 
     if min_energy is not None and max_energy is not None and min_energy > max_energy:
         min_energy = None
         max_energy = None
+        
     if (
         min_educational is not None
         and max_educational is not None
