@@ -1,5 +1,5 @@
-
 from enum import Enum
+
 
 class DAY_OF_WEEK(str, Enum):
     MON = "monday"
@@ -9,6 +9,17 @@ class DAY_OF_WEEK(str, Enum):
     FRI = "friday"
     SAT = "saturday"
     SUN = "sunday"
+
+
+DAY_NAMES = [
+    DAY_OF_WEEK.MON,
+    DAY_OF_WEEK.TUE,
+    DAY_OF_WEEK.WED,
+    DAY_OF_WEEK.THU,
+    DAY_OF_WEEK.FRI,
+    DAY_OF_WEEK.SAT,
+    DAY_OF_WEEK.SUN,
+]
 
 COMMON_TOPICS = [
     "Actors",
