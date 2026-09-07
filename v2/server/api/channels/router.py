@@ -11,11 +11,14 @@ from db import get_db
 
 router = APIRouter(prefix="/youtube/channels", tags=["channels"])
 
+
 def _formatChannel(channel: Channels) -> ChannelResponse:
     # Create new copy, do not mutate db entry via ORM
     new = {k: v for k, v in channel.__dict__.items()}
     new["category_tags"] = json.loads(channel.category_tags)
     return new
+
+
 class ChannelResponse(BaseModel):
     channel_id: str
     name: str
@@ -26,19 +29,21 @@ class ChannelResponse(BaseModel):
     updated_at: str
     last_updated: str
 
+
 class GetChannelsResponse(BaseModel):
     channels: list[ChannelResponse]
+
 
 @router.get("/")
 def get_channels(
     db: Session = Depends(get_db),
     page_size: Optional[int] = 30,
     page: Optional[int] = 0,
-    search: Optional[str] = None,
-    categories: Optional[str] = None,
+    search: Optional[str] = "",
+    categories: Optional[str] = "",
 ):
     _query = db.query(Channels)
-    _search = (search or "").strip()
+    _search = search.strip()
     _categories = categories.split(",")
 
     if _search:
@@ -55,8 +60,9 @@ def get_channels(
     return {"channels": [_formatChannel(row) for row in results]}
 
 
-@router.get("/refresh")
+@router.post("/refresh/{channel_id}")
 def refresh_channels(
+    channel_id: str,
     db: Session = Depends(get_db),
     page_size: Optional[int] = 30,
     page: Optional[int] = 0,
@@ -70,6 +76,13 @@ def refresh_channels(
 @router.post("/add")
 def add_channel(
     db: Session = Depends(get_db),
+):
+    # TODO:
+    return {}
+
+@router.get("/find")
+def add_channel(
+    name: str
 ):
     # TODO:
     return {}
