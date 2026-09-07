@@ -74,3 +74,5 @@ COMMON_TOPICS = [
     "Technology",
     "Travel",
 ]
+
+PRESENTATION = ["Vlog", "Music", "Podcast", "Commentary", "Talk show", "Info"]
