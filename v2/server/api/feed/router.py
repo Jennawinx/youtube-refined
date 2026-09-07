@@ -21,6 +21,12 @@ def get_feed(
     page_size: Optional[int] = 30,
     page: Optional[int] = 0,
     mode: Optional[FeedMode] = FeedMode.RECOMMENDED,
+    categories: Optional[str] = [],
+    query: Optional[str] = "",
+    min_energy: Optional[int] = None,
+    max_energy: Optional[int] = None,
+    min_educational: Optional[int] = None,
+    max_educational: Optional[int] = None,
 ):
     # TODO:
     return {
