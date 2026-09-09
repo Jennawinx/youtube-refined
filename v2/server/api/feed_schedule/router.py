@@ -14,10 +14,9 @@ router = APIRouter(prefix="/feed_schedule", tags=["feed_schedule"])
 
 @router.get("/", response_model=FeedSchedule)
 def get_schedule(
-    db: Session = Depends(get_db),
+    scheduleService: FeedScheduleService = Depends()
 ):
-    schedule = FeedScheduleService(db)
-    return {"schedule": schedule.get_feed_schedule()}
+    return scheduleService.get_feed_schedule()
 
 
 @router.get("/rules")

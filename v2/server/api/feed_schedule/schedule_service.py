@@ -18,9 +18,11 @@ showing the intersection of constraints.
 
 import json
 from typing import Optional
+from fastapi import Depends
 from pydantic import BaseModel
 from schema import ScheduleRules
 from model import DAY_OF_WEEK, DAY_NAMES
+from db import get_db
 
 
 class RuleBlock(BaseModel):
@@ -225,7 +227,7 @@ class FeedScheduleService:
 
     _ScheduleCache: FeedSchedule | None = None
 
-    def __init__(self, db):
+    def __init__(self, db=Depends(get_db)):
         self._db = db
 
     def get_feed_schedule(self) -> FeedSchedule:
