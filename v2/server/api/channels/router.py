@@ -106,26 +106,27 @@ def add_channel(
     refreshService: RefreshService = Depends(),
 ):
     try:
-        channel_info = youtube.get_channel_playlist(channel_id)
-        channel_category = channelCategorizer.determine_channel_topics(channel_info.description)
+        channel_page = youtube.get_channel_playlist(channel_id)
+        channel_category = channelCategorizer.determine_channel_topics(
+            channel_page.description
+        )
 
         now = datetime.now()
         channel = db.query(Channels).filter(Channels.channel_id == channel_id).first()
         if not channel:
             channel = Channels(
-                channel_id=channel_info.channel_id,
-                name=channel_info.name,
+                channel_id=channel_page.channel_id,
+                name=channel_page.name,
                 upload_frequency="biweekly",
                 updated_at=now,
                 created_at=now,
                 category_tags=json.dumps(channel_category),
             )
-
-        db.add(channel)
-        db.flush()
+            db.add(channel)
+            db.flush()
 
         refreshService.update_video_list(
-            channel_id=channel_id, videos=channel_info.videos
+            channel_id=channel_id, videos=channel_page.videos
         )
         db.commit()
 
@@ -136,28 +137,32 @@ def add_channel(
     return SuccessAction()
 
 
-@router.patch("/{channel_id}")
+@router.patch("/{id}")
 def edit_channel(
+    id: str,
     db: Session = Depends(get_db),
 ):
     # TODO:
     return {}
 
 
-@router.post("/refresh/{channel_id}")
-def refresh_channels(
-    channel_id: str,
+@router.post("/refresh/{id}")
+def refresh_channel(
+    id: str,
     db: Session = Depends(get_db),
-    page_size: Optional[int] = 30,
-    page: Optional[int] = 0,
+    refreshService: RefreshService = Depends(),
 ):
-    # TODO:
-    return {
-        "channels": db.query(Channels).limit(page_size).offset(page * page_size).all()
-    }
+    channel = db.query(Channels).filter(Channels.id == id).first()
+    channel_page = youtube.get_channel_playlist(channel.channel_id)
+    refreshService.update_video_list(
+        channel_id=channel.channel_id, videos=channel_page.videos
+    )
+    db.commit()
+
+    return SuccessAction()
 
 
-@router.delete("/{channel_id}")
+@router.delete("/{id}")
 def delete_channel(
     db: Session = Depends(get_db),
 ):
