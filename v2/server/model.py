@@ -1,4 +1,17 @@
+from datetime import datetime
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field
+
+
+def get_now() -> datetime:
+    return datetime.now()
+
+
+class SuccessAction(BaseModel):
+    success: bool = True
+    updated_at: datetime = Field(default_factory=get_now)
 
 
 class DAY_OF_WEEK(str, Enum):

@@ -1,13 +1,12 @@
 from datetime import datetime, time
-from enum import Enum
 import json
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from schema import ScheduleRules
 from db import get_db
-from model import DAY_OF_WEEK
+from model import DAY_OF_WEEK, SuccessAction
 from .schedule_service import FeedSchedule, FeedScheduleService
 
 router = APIRouter(prefix="/feed_schedule", tags=["feed_schedule"])
@@ -42,7 +41,7 @@ class RuleCreate(BaseModel):
     categories: Optional[list[str]] = []
 
 
-@router.post("/rule")
+@router.post("/rule", response_model=SuccessAction)
 def create_rule(
     payload: RuleCreate,
     db: Session = Depends(get_db),
@@ -69,7 +68,7 @@ def create_rule(
     )
     db.add(rule)
     db.commit()
-    return {"success": True}
+    return SuccessAction()
 
 
 class RuleUpdate(BaseModel):
@@ -84,7 +83,7 @@ class RuleUpdate(BaseModel):
     categories: Optional[list[str]] = None
 
 
-@router.patch("/rule/{rule_id}/")
+@router.patch("/rule/{rule_id}/", response_model=SuccessAction)
 def modify_rule(
     rule_id: str,
     payload: RuleUpdate,
@@ -121,14 +120,14 @@ def modify_rule(
 
     db.query(ScheduleRules).filter(ScheduleRules.id == rule_id).update(changes)
     db.commit()
-    return {"success": True, "updated_at": changes["updated_at"]}
+    return SuccessAction()
 
 
-@router.delete("/rule/{rule_id}/")
+@router.delete("/rule/{rule_id}/", response_model=SuccessAction)
 def delete_rule(
     rule_id: str,
     db: Session = Depends(get_db),
 ):
     db.query(ScheduleRules).filter(ScheduleRules.id == rule_id).delete()
     db.commit()
-    return {"success": True}
+    return SuccessAction()

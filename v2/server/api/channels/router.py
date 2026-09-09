@@ -1,5 +1,6 @@
-from dataclasses import asdict
 import json
+from dataclasses import asdict
+from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -7,8 +8,10 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from schema import Channels
 from db import get_db
-from model import CHANNEL_TYPE
+from model import CHANNEL_TYPE, SuccessAction
 from clients import youtube
+from clients.channel_categorizer import ChannelCategorizer
+from api.feed.refresh_service import RefreshService
 
 # Could potientially expand this beyond youtube
 
@@ -75,7 +78,7 @@ class FindChannelsResponse(BaseModel):
     channels: list[FindChannelResponse]
 
 
-@router.post("/find", response_model=FindChannelsResponse)
+@router.get("/find", response_model=FindChannelsResponse)
 def find_channel(
     search: str,
 ):
@@ -95,12 +98,42 @@ def find_channel(
     return {"channels": results}
 
 
-@router.post("/add")
+@router.post("/add", response_model=SuccessAction)
 def add_channel(
+    channel_id: str,
     db: Session = Depends(get_db),
+    channelCategorizer: ChannelCategorizer = Depends(),
+    refreshService: RefreshService = Depends(),
 ):
-    # TODO:
-    return {}
+    try:
+        channel_info = youtube.get_channel_playlist(channel_id)
+        channel_category = channelCategorizer.determine_channel_topics(channel_info.description)
+
+        now = datetime.now()
+        channel = db.query(Channels).filter(Channels.channel_id == channel_id).first()
+        if not channel:
+            channel = Channels(
+                channel_id=channel_info.channel_id,
+                name=channel_info.name,
+                upload_frequency="biweekly",
+                updated_at=now,
+                created_at=now,
+                category_tags=json.dumps(channel_category),
+            )
+
+        db.add(channel)
+        db.flush()
+
+        refreshService.update_video_list(
+            channel_id=channel_id, videos=channel_info.videos
+        )
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise
+
+    return SuccessAction()
 
 
 @router.patch("/{channel_id}")

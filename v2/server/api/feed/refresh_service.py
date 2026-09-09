@@ -1,3 +1,5 @@
+import json
+
 from logger import logger
 from datetime import datetime
 from fastapi import Depends
@@ -24,7 +26,7 @@ class RefreshService:
     def update_video_list(self, channel_id, videos: list[YouTubeVideo]) -> int:
 
         db = self._db
-        channel = db.query(Channels).filter(Channels.id == channel_id).first()
+        channel = db.query(Channels).filter(Channels.channel_id == channel_id).first()
 
         if not channel:
             logger.error("Cannot update video list for channel {channel_id}")
@@ -47,25 +49,30 @@ class RefreshService:
         )
 
         logger.info(f"Found {len(new_videos)} new videos for channel {channel.name}")
+        now = datetime.now()
 
         for i in range(len(new_videos)):
             video_info = new_videos[i]
             category_info = categorized_videos[i]
             new_video = Videos(
-                channel_id=channel_id,
+                channel_id=channel.id,
                 title=video_info.title,
                 description=video_info.description,
                 url=video_info.url,
                 thumbnail_url=video_info.thumbnail_url,
                 publish_date=video_info.publish_date,
                 presentation=category_info.presentation,
-                category_tags=category_info.topics,
+                category_tags=json.dumps(category_info.topics),
                 energy=category_info.energy,
                 educational=category_info.educational,
+                is_watched=False,
+                video_id=video_info.video_id,
+                created_at=now,
+                updated_at=now,
             )
             db.add(new_video)
 
         channel.last_updated = datetime.now()
-        db.commit()
+        db.flush()
 
         return len(new_videos)

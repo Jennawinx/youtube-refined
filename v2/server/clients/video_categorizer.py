@@ -66,20 +66,20 @@ example inputs
 
 class VideoCategorizer:
     
-    client: OpenAI | None = None
+    _client: OpenAI | None = None
 
     def __init__(self):
-        if not VideoCategorizer.client:
-            VideoCategorizer.client = OpenAI(api_key=LLM_API_KEY)
+        if not VideoCategorizer._client:
+            VideoCategorizer._client = OpenAI(api_key=LLM_API_KEY)
             print("Initialized Video Categorizer with prompt: \n")
             print(LLM_SYS_PROMPT_CATEGORIZE, "\n")
 
-    def categorize_videos(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+    def categorize_videos(self, list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
 
         if len(list_of_videos) == 0:
             return []
 
-        response = VideoCategorizer.client.responses.create(
+        response = VideoCategorizer._client.responses.create(
             # model="gpt-5.4-nano", # Better with instructions
             model="gpt-4o-mini",
             instructions=LLM_SYS_PROMPT_CATEGORIZE,
@@ -124,7 +124,7 @@ class VideoCategorizer:
         return categorizedVideos
 
 
-    def categorize_videos_advanced(list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+    def categorize_videos_advanced(self, list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
         if len(list_of_videos) == 0:
             return []
 
@@ -145,7 +145,7 @@ class VideoCategorizer:
 
         print("\nLLM input content:\n", content)
 
-        response = VideoCategorizer.client.chat.completions.create(
+        response = VideoCategorizer._client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": LLM_SYS_PROMPT_CATEGORIZE},

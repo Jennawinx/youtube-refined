@@ -15,20 +15,20 @@ Return result as a JSON array
 
 class ChannelCategorizer:
     
-    client: OpenAI | None = None
+    _client: OpenAI | None = None
     
     def __init__(self):
-        if not ChannelCategorizer.client:
-            ChannelCategorizer.client = OpenAI(api_key=LLM_API_KEY)
+        if not ChannelCategorizer._client:
+            ChannelCategorizer._client = OpenAI(api_key=LLM_API_KEY)
             print("Initialized Channel Categorizer with prompt: \n")
             print(LLM_SYS_PROMPT, "\n")
 
-    def determine_channel_topics(description: str) -> list[str]:
+    def determine_channel_topics(self, description: str) -> list[str]:
 
         if not description:
             return []
 
-        response = ChannelCategorizer.client.responses.create(
+        response = ChannelCategorizer._client.responses.create(
             # model="gpt-5.4-nano", # Better with instructions
             model="gpt-4o-mini",
             instructions=LLM_SYS_PROMPT,
@@ -39,6 +39,8 @@ class ChannelCategorizer:
         )
 
         responseText = response.output[0].content[0].text
+        
+        print("\n\nresponseText", responseText)
 
         # print("gpt output:", response)
 

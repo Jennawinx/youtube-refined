@@ -51,6 +51,10 @@ class YouTubeChannelPlaylist:
     videos: list[YouTubeVideo]
 
 
+def _parse_publish_date(published_at: str) -> datetime:
+    return datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+
+
 def _parse_duration(iso_duration: str) -> int:
     import re
 
@@ -106,7 +110,7 @@ def get_video_details(video_ids: list[str]) -> list[YouTubeVideo]:
                 url=YOUTUBE_VIDEO_URL.format(video_id=video_id),
                 thumbnail_url=thumbnail_url,
                 thumbnail_url_low_res=thumbnail_url_low_res,
-                publish_date=snippet.get("publishedAt", ""),
+                publish_date=_parse_publish_date(snippet.get("publishedAt", "")),
                 duration_seconds=_parse_duration(content_details.get("duration", "")),
                 categoryId=snippet.get("categoryId", ""),
             )
