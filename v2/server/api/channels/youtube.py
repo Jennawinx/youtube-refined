@@ -17,6 +17,7 @@ YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 YOUTUBE_VIDEO_URL = "https://www.youtube.com/watch?v={video_id}"
 FETCH_SIZE = 3
 
+
 class YouTubeApiError(Exception):
     pass
 
@@ -73,7 +74,7 @@ def _api_get(endpoint: str, params: dict) -> dict:
         raise YouTubeApiError(f"YouTube API request failed: {endpoint}") from exc
 
 
-def _fetch_video_details(video_ids: list[str]) -> list[YouTubeVideo]:
+def get_video_details(video_ids: list[str]) -> list[YouTubeVideo]:
     video_data = _api_get(
         "videos",
         {
@@ -114,7 +115,7 @@ def _fetch_video_details(video_ids: list[str]) -> list[YouTubeVideo]:
     return videos
 
 
-def _fetch_playlist_videos(
+def get_playlist_videos(
     playlist_id: str, fetch_size: int = FETCH_SIZE
 ) -> list[YouTubeVideo]:
     playlist_data = _api_get(
@@ -137,39 +138,38 @@ def _fetch_playlist_videos(
     if not video_ids:
         return []
 
-    videos = _fetch_video_details(video_ids)
+    videos = get_video_details(video_ids)
 
     return [v for v in videos if v.duration_seconds > 180][:fetch_size]
 
 
-# # TODO: refactor
-# def fetch_channel_feed(channel_id: str) -> YouTubeFeed:
+def get_channel_feed(channel_id: str) -> YouTubeFeed:
 
-#     channel_data = _api_get(
-#         "channels",
-#         {
-#             "part": "snippet,contentDetails",
-#             "id": channel_id,
-#             "key": YOUTUBE_API_KEY,
-#         },
-#     )
+    channel_data = _api_get(
+        "channels",
+        {
+            "part": "snippet,contentDetails",
+            "id": channel_id,
+            "key": YOUTUBE_API_KEY,
+        },
+    )
 
-#     items = channel_data.get("items", [])
-#     if not items:
-#         raise YouTubeApiError(f"Channel not found: {channel_id}")
+    items = channel_data.get("items", [])
+    if not items:
+        raise YouTubeApiError(f"Channel not found: {channel_id}")
 
-#     channel_item = items[0]
-#     snippet = channel_item["snippet"]
-#     uploads_playlist_id = channel_item["contentDetails"]["relatedPlaylists"]["uploads"]
+    channel_item = items[0]
+    snippet = channel_item["snippet"]
+    uploads_playlist_id = channel_item["contentDetails"]["relatedPlaylists"]["uploads"]
 
-#     videos = _fetch_playlist_videos(uploads_playlist_id)
+    videos = get_playlist_videos(uploads_playlist_id)
 
-#     return YouTubeFeed(
-#         channel_id=channel_id,
-#         name=snippet.get("title", ""),
-#         description=snippet.get("description", ""),
-#         videos=videos,
-#     )
+    return YouTubeFeed(
+        channel_id=channel_id,
+        name=snippet.get("title", ""),
+        description=snippet.get("description", ""),
+        videos=videos,
+    )
 
 
 # # TODO: refactor
