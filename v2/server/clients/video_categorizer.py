@@ -64,8 +64,9 @@ example inputs
 ]
 """
 
+
 class VideoCategorizer:
-    
+
     _client: OpenAI | None = None
 
     def __init__(self):
@@ -74,7 +75,9 @@ class VideoCategorizer:
             print("Initialized Video Categorizer with prompt: \n")
             print(LLM_SYS_PROMPT_CATEGORIZE, "\n")
 
-    def categorize_videos(self, list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+    def categorize_videos(
+        self, list_of_videos: list[VideoDetails]
+    ) -> list[CategorizedVideo]:
 
         if len(list_of_videos) == 0:
             return []
@@ -85,7 +88,11 @@ class VideoCategorizer:
             instructions=LLM_SYS_PROMPT_CATEGORIZE,
             input=json.dumps(
                 [
-                    {"id": v.id, "thumbnail_url": v.thumbnail_url[:255], "title": v.title[:255]}
+                    {
+                        "id": v.id,
+                        "thumbnail_url": v.thumbnail_url[:255],
+                        "title": v.title[:255],
+                    }
                     for v in list_of_videos
                 ],
                 separators=(",", ":"),
@@ -103,7 +110,9 @@ class VideoCategorizer:
         # print("gpt output:", response)
 
         try:
-            json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
+            json_snippet = re.search(
+                r"```json\s*(.*?)\s*```", responseText, re.DOTALL
+            ).group(1)
             print("\nCategorization JSON snippet (Basic):\n", json_snippet, "\n")
             results = json.loads(json_snippet)
             for result in results:
@@ -123,25 +132,29 @@ class VideoCategorizer:
 
         return categorizedVideos
 
-
-    def categorize_videos_advanced(self, list_of_videos: list[VideoDetails]) -> list[CategorizedVideo]:
+    def categorize_videos_advanced(
+        self, list_of_videos: list[VideoDetails]
+    ) -> list[CategorizedVideo]:
         if len(list_of_videos) == 0:
             return []
 
         content = []
         for v in list_of_videos:
-            content.append({
-                "type": "text",
-                "text": json.dumps({"id": v.id, "title": v.title}, separators=(",", ":")),
-            })
+            content.append(
+                {
+                    "type": "text",
+                    "text": json.dumps(
+                        {"id": v.id, "title": v.title}, separators=(",", ":")
+                    ),
+                }
+            )
             if v.thumbnail_url:
-                content.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": v.thumbnail_url, 
-                        "detail": "low"
-                    },
-                })
+                content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": v.thumbnail_url, "detail": "low"},
+                    }
+                )
 
         print("\nLLM input content:\n", content)
 
@@ -160,13 +173,15 @@ class VideoCategorizer:
 
         try:
             # gpt-4o-mini
-            json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
+            json_snippet = re.search(
+                r"```json\s*(.*?)\s*```", responseText, re.DOTALL
+            ).group(1)
             print("\nCategorization JSON snippet (Advanced):\n", json_snippet, "\n")
             results = json.loads(json_snippet)
 
             # gpt-5.4-nano, gpt-4.1-nano
             # results = json.loads(responseText)
-            
+
             for result in results:
                 categorizedVideos.append(
                     CategorizedVideo(

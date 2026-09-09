@@ -10,6 +10,7 @@ from clients.channel_categorizer import ChannelCategorizer
 from db import get_db
 from schema import Videos, Channels
 
+
 class RefreshService:
 
     def __init__(
@@ -22,7 +23,6 @@ class RefreshService:
         self._videoCategorizer = videoCategorizer
         self._channelCategorizer = channelCategorizer
 
-    # TODO: WIP
     def update_video_list(self, channel_id, videos: list[YouTubeVideo]) -> int:
 
         db = self._db
@@ -37,7 +37,7 @@ class RefreshService:
             db.query(Videos).filter(Videos.video_id.in_(video_ids)).all()
         )
         new_videos = [v for v in videos if v.video_id not in existing_video_ids]
-        
+
         # Categorize the videos
         categorized_videos = self._videoCategorizer.categorize_videos_advanced(
             [

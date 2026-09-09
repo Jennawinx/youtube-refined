@@ -37,12 +37,9 @@ class RuleBlock(BaseModel):
     max_educational: Optional[int] = None
 
 
-# class FeedSchedule(RootModel[dict[DAY_OF_WEEK, list[RuleBlock]]]):
-#     """{ weekday -> [{ start_hour, end_hour, rule_name, category_tags, min_energy, max_energy, min_educational, max_educational }] }"""
-#     pass
-
 class FeedSchedule(BaseModel):
     """{ weekday -> [{ start_hour, end_hour, rule_name, category_tags, min_energy, max_energy, min_educational, max_educational }] }"""
+
     monday: list[RuleBlock]
     tuesday: list[RuleBlock]
     wednesday: list[RuleBlock]

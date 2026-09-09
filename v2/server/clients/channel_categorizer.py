@@ -13,10 +13,11 @@ For topics select 2-8 options from {", ".join(COMMON_TOPICS)}.
 Return result as a JSON array
 """
 
+
 class ChannelCategorizer:
-    
+
     _client: OpenAI | None = None
-    
+
     def __init__(self):
         if not ChannelCategorizer._client:
             ChannelCategorizer._client = OpenAI(api_key=LLM_API_KEY)
@@ -39,13 +40,13 @@ class ChannelCategorizer:
         )
 
         responseText = response.output[0].content[0].text
-        
+
         print("\n\nresponseText", responseText)
 
-        # print("gpt output:", response)
-
         try:
-            json_snippet = re.search(r"```json\s*(.*?)\s*```", responseText, re.DOTALL).group(1)
+            json_snippet = re.search(
+                r"```json\s*(.*?)\s*```", responseText, re.DOTALL
+            ).group(1)
             print("\nChannel Categorization JSON snippet:\n", json_snippet, "\n")
             results = json.loads(json_snippet)
             return results
