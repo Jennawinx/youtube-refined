@@ -44,7 +44,7 @@ class YouTubeVideo:
 
 
 @dataclass
-class YouTubeFeed:
+class YouTubeChannelPlaylist:
     channel_id: str
     name: str
     description: str
@@ -143,7 +143,7 @@ def get_playlist_videos(
     return [v for v in videos if v.duration_seconds > 180][:fetch_size]
 
 
-def get_channel_feed(channel_id: str) -> YouTubeFeed:
+def get_channel_playlist(channel_id: str) -> YouTubeChannelPlaylist:
 
     channel_data = _api_get(
         "channels",
@@ -164,60 +164,12 @@ def get_channel_feed(channel_id: str) -> YouTubeFeed:
 
     videos = get_playlist_videos(uploads_playlist_id)
 
-    return YouTubeFeed(
+    return YouTubeChannelPlaylist(
         channel_id=channel_id,
         name=snippet.get("title", ""),
         description=snippet.get("description", ""),
         videos=videos,
     )
-
-
-# # TODO: refactor
-# def refresh_channel_with_feed(channel: Channels, feed: YouTubeFeed) -> int:
-#     # Filter out shorts
-#     video_list = feed.videos
-#     video_ids = {v.video_id for v in video_list}
-#     existing_video_ids = set(
-#         Videos.objects.filter(video_id__in=video_ids).values_list("video_id", flat=True)
-#     )
-#     new_videos = [v for v in video_list if v.video_id not in existing_video_ids]
-#     categorized_videos = categorize_videos_advanced(
-#         [
-#             VideoDetails(
-#                 id=v.video_id, thumbnail_url=v.thumbnail_url_low_res, title=v.title
-#             )
-#             for v in new_videos
-#         ]
-#     )
-#     createdCount = 0
-
-#     logger.info(f"Found {len(new_videos)} new videos for channel {channel.name}")
-
-#     for i in range(len(new_videos)):
-#         video = new_videos[i]
-#         categorized_video = categorized_videos[i]
-#         _, created = Videos.objects.get_or_create(
-#             video_id=video.video_id,
-#             defaults={
-#                 "channel": channel,
-#                 "title": video.title,
-#                 "description": video.description,
-#                 "url": video.url,
-#                 "thumbnail_url": video.thumbnail_url,
-#                 "publish_date": video.publish_date,
-#                 "presentation": categorized_video.presentation,
-#                 "category_tags": categorized_video.topics,
-#                 "energy": categorized_video.energy,
-#                 "educational": categorized_video.educational,
-#             },
-#         )
-#         if created:
-#             createdCount += 1
-
-#     channel.last_updated = timezone.now()
-#     channel.save(update_fields=["last_updated"])
-
-#     return createdCount
 
 
 def search_channels(query: str) -> list[YouTubeChannelResult]:

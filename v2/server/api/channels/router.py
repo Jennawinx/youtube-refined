@@ -75,8 +75,8 @@ class FindChannelsResponse(BaseModel):
     channels: list[FindChannelResponse]
 
 
-@router.post("/find")
-def add_channel(
+@router.post("/find", response_model=FindChannelsResponse)
+def find_channel(
     search: str,
 ):
     results = []

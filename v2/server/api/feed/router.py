@@ -41,15 +41,12 @@ def get_feed(
 @router.get("/refresh")
 def refresh_feed(
     db: Session = Depends(get_db),
-    page_size: Optional[int] = 30,
-    page: Optional[int] = 0,
 ):
     # TODO:
     return {
         "videos": db.query(Videos)
         .order_by(Videos.created_at.desc())
-        .offset(page * page_size)
-        .limit(page_size)
+        .limit(10)
         .all()
     }
 
