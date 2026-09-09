@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from schema import Channels
 from db import get_db
 from model import CHANNEL_TYPE
-from . import youtube
+from clients import youtube
 
 # Could potientially expand this beyond youtube
 
