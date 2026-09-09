@@ -1,3 +1,4 @@
+from dataclasses import asdict
 import json
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -6,6 +7,8 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from schema import Channels
 from db import get_db
+from model import CHANNEL_TYPE
+from . import youtube
 
 # Could potientially expand this beyond youtube
 
@@ -60,29 +63,41 @@ def get_channels(
     return {"channels": [_formatChannel(row) for row in results]}
 
 
-@router.post("/refresh/{channel_id}")
-def refresh_channels(
-    channel_id: str,
-    db: Session = Depends(get_db),
-    page_size: Optional[int] = 30,
-    page: Optional[int] = 0,
+class FindChannelResponse(BaseModel):
+    channel_id: str
+    name: str
+    description: Optional[str]
+    thumbnail_url: Optional[str]
+    type: CHANNEL_TYPE
+
+
+class FindChannelsResponse(BaseModel):
+    channels: list[FindChannelResponse]
+
+
+@router.post("/find")
+def add_channel(
+    search: str,
 ):
-    # TODO:
-    return {
-        "channels": db.query(Channels).limit(page_size).offset(page * page_size).all()
-    }
+    results = []
+    for channel in youtube.search_channels(search):
+        results.append(
+            # NOTES: apparently this is an anti-pattern O.O?
+            FindChannelResponse(
+                channel_id=channel.channel_id,
+                name=channel.name,
+                description=channel.description,
+                thumbnail_url=channel.thumbnail_url,
+                type=CHANNEL_TYPE.YOUTUBE,
+            )
+        )
+
+    return {"channels": results}
 
 
 @router.post("/add")
 def add_channel(
     db: Session = Depends(get_db),
-):
-    # TODO:
-    return {}
-
-@router.get("/find")
-def add_channel(
-    name: str
 ):
     # TODO:
     return {}
@@ -94,6 +109,19 @@ def edit_channel(
 ):
     # TODO:
     return {}
+
+
+@router.post("/refresh/{channel_id}")
+def refresh_channels(
+    channel_id: str,
+    db: Session = Depends(get_db),
+    page_size: Optional[int] = 30,
+    page: Optional[int] = 0,
+):
+    # TODO:
+    return {
+        "channels": db.query(Channels).limit(page_size).offset(page * page_size).all()
+    }
 
 
 @router.delete("/{channel_id}")

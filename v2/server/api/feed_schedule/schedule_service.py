@@ -141,7 +141,7 @@ def _schedule_merge_active_ranges(
     )
 
 
-def schedule_resolve_overlaps(ranges: list[RuleBlock]) -> list[RuleBlock]:
+def _schedule_resolve_overlaps(ranges: list[RuleBlock]) -> list[RuleBlock]:
     """
     Resolve overlapping ranges by splitting across unique boundaries.
 
@@ -216,7 +216,7 @@ def _schedule_compute(rules: list[ScheduleRules]) -> FeedSchedule:
             schedule[day].append(time_range)
 
         # Resolve overlaps for this day
-        schedule[day] = schedule_resolve_overlaps(schedule[day])
+        schedule[day] = _schedule_resolve_overlaps(schedule[day])
 
     return schedule
 

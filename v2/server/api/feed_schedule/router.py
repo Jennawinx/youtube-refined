@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from schema import ScheduleRules
 from db import get_db
 from model import DAY_OF_WEEK
-from .schedule import FeedSchedule, FeedScheduleService
+from .schedule_service import FeedSchedule, FeedScheduleService
 
 router = APIRouter(prefix="/feed_schedule", tags=["feed_schedule"])
 

@@ -11,6 +11,10 @@ class DAY_OF_WEEK(str, Enum):
     SUN = "sunday"
 
 
+class CHANNEL_TYPE(str, Enum):
+    YOUTUBE = "youtube"
+
+
 DAY_NAMES = [
     DAY_OF_WEEK.MON,
     DAY_OF_WEEK.TUE,
